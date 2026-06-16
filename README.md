@@ -8,13 +8,15 @@
 
 ## ステータス
 
-**フェーズ: 開発準備中（v0.1着手前）**
+**フェーズ: v0.1 public beta / Core Audio PoC**
 
 - ✅ 企画書 [`hazakura-volume-booster企画書.md`](./hazakura-volume-booster企画書.md)
 - ✅ 準備ドキュメント（本リポジトリの `docs/`）
-- ⏳ **Core Audio Tap PoC**（[`docs/TECH_SPIKE.md`](./docs/TECH_SPIKE.md)）
-- ❌ v0.1 MVP 実装
-- ❌ 配布（v0.1時点では未定）
+- ✅ **Core Audio Tap + ScreenCaptureKit PoC**（[`spike/core-audio-tap`](./spike/core-audio-tap)）
+- ✅ メニューバーUI / 100%復帰 / ON-OFF / Dev診断表示
+- ✅ 手元環境での音量ブースト確認（100% / 200% / 400%）
+- ⚠️ 署名済みDMG・公証・自動アップデートは未整備
+- ⚠️ v0.1 は実験的なベータ。音質・遅延・権限まわりは継続検証中
 
 ## クイックリンク
 
@@ -28,6 +30,46 @@
 | [`docs/RISKS.md`](./docs/RISKS.md) | 技術リスク・既知の落とし穴・未解決の論点 |
 | [`docs/PERMISSIONS.md`](./docs/PERMISSIONS.md) | macOSのAudio/Sandbox/Hardened Runtime/Notarization方針 |
 | [`docs/UI_DESIGN.md`](./docs/UI_DESIGN.md) | アイコン・ポップオーバー・状態表現・アクセシビリティ |
+| [`spike/core-audio-tap/README.md`](./spike/core-audio-tap/README.md) | 現在動いている v0.1 beta PoC のビルド・起動手順 |
+
+## 現在の実装
+
+v0.1 beta は `spike/core-audio-tap/` の PoC 実装を現在の実体として扱います。
+
+- ScreenCaptureKit でシステム音声を取得
+- Core Audio process tap を `.muted` で使い、元音の二重再生を抑制
+- `PCMFloatRingBuffer` 経由で `AVAudioSourceNode` から加工後音を出力
+- ゲインは 100%〜400% を主対象とし、簡易ソフトリミッタで過大なクリッピングを抑制
+- Dev モードで capture buffer / render call / output gain / event log を確認可能
+
+これは配布製品ではなく、手元で使える public beta PoC です。録音・保存・外部送信は行いません。
+
+## ビルド・テスト
+
+```bash
+cd spike/core-audio-tap
+
+xcodebuild \
+  -project CoreAudioTapPoC.xcodeproj \
+  -scheme CoreAudioTapPoC \
+  -destination 'platform=macOS' \
+  -derivedDataPath build \
+  test
+
+xcodebuild \
+  -project CoreAudioTapPoC.xcodeproj \
+  -scheme CoreAudioTapPoC \
+  -configuration Debug \
+  -destination 'platform=macOS' \
+  -derivedDataPath build \
+  build
+```
+
+起動:
+
+```bash
+open spike/core-audio-tap/build/Build/Products/Debug/CoreAudioTapPoC.app
+```
 
 ## 企画書の要点（要約）
 
@@ -63,10 +105,11 @@
 
 ## 次のアクション
 
-1. Xcodeプロジェクトを `hazakura-volume-booster.xcodeproj` として作成し、`docs/DEVELOPMENT.md` に沿った構成で初期化する
-2. `docs/ARCHITECTURE.md` のデータフローを実コードに落とす
-3. v0.1 MVP のDoDを [`docs/ROADMAP.md`](./docs/ROADMAP.md) で確認し、順に検証
+1. `spike/core-audio-tap/` の PoC を v0.1 本体プロジェクトへ昇格するか判断する
+2. 強制終了・スリープ復帰・出力デバイス変更時の安全性を追加検証する
+3. Developer ID署名 / Notarized DMG / Privacy Manifest を配布前に整備する
+4. README と `docs/` の計画文書を、PoC結果に合わせて順次更新する
 
 ## ライセンス
 
-未定。v0.1リリース前に決定する。
+Hazakura Boost はプロプライエタリソフトウェアです。詳細は [`LICENSE`](./LICENSE) を参照してください。

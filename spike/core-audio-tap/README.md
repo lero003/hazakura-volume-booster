@@ -3,47 +3,51 @@
 > 親: `hazakura-volume-booster/` ルート  
 > 関連: [`docs/TECH_SPIKE.md`](../../docs/TECH_SPIKE.md) / [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) / [`docs/RISKS.md`](../../docs/RISKS.md) / [`docs/PERMISSIONS.md`](../../docs/PERMISSIONS.md)
 
-Hazakura Boost v0.1 の **実装に着手する前に必ず通す**技術検証（PoC）。  
-`docs/TECH_SPIKE.md` の Done 条件を満たさない限り v0.1 には進まない。
+Hazakura Boost v0.1 beta の現在の実体になっている技術検証（PoC）。
+
+このPoCは、当初想定した「Core Audio Tap + aggregate device + IO proc」の純Core Audio経路ではなく、次の折衷構成で動いている。
+
+- **Core Audio process tap**: 他プロセスの元音を `.muted` で止め、二重再生を防ぐ
+- **ScreenCaptureKit audio**: システム音声をアプリ内へ取り込む
+- **PCMFloatRingBuffer**: capture側とrender側の時間差を吸収する
+- **AVAudioEngine / AVAudioSourceNode**: ring bufferを読み、ゲイン処理後の音を出力する
+
+つまり、現在のPoCは「Core Audio Tapで直接IOProcを駆動する」実装ではない。旧経路のコードと記録は、失敗した技術検証として残している。
 
 ## 経緯（なぜこの構成か）
 
 最初の実装は `AVAudioEngine.inputNode` を **tap のみを内包する aggregate device** に切り替える方針だった。結果、起動時に **`kAudioUnitErr_FailedInitialization` (-10875)** で失敗。
 
-その後 `AudioDeviceCreateIOProcID` を試したが IO proc が呼ばれず、`HALOutput AudioUnit` への移行も `CurrentDevice` で失敗した。さらに調査した結果、**aggregate device をシステムの default output として設定しないと IO proc が駆動されない**ことが判明した。
+その後 `AudioDeviceCreateIOProcID` を試したが IO proc が呼ばれず、`HALOutput AudioUnit` への移行も `CurrentDevice` で失敗した。
 
-現在の構成は以下の点に準拠する:
-
-- Apple 公式の `Capturing system audio with Core Audio taps` サンプルと同じく **`AudioDeviceCreateIOProcID` で aggregate device に直接 IO proc を登録** し、リアルタイムでゲイン乗算／出力する
-- 録音専用なら `kAudioAggregateDeviceSubDeviceListKey: []`（空の sub-device list）でよいが、**ループバック・出力したい場合は default output を sub-device として加える必要がある**
-- **ループバックを成立させるため、セットアップ後に aggregate device を default output に設定し、teardown 時に元のデバイスへ復元する**
-- IO proc は **リアルタイム安全**（ロック禁止・alloc 禁止）なので、Swift では書けず **Obj-C++ 必須**
-- 元音と加工後音の二重再生を防ぐため、tap の `muteBehavior` は `.muted` とする
+現在は、Core Audio process tap を **元音ミュート用**に使い、音声取得は ScreenCaptureKit、出力は AVAudioEngine に分離している。これにより、v0.1 beta として必要な「音を持ち上げる」「二重再生を避ける」「Dev診断で状態を見る」は成立している。
 
 ## このPoCが検証すること
 
-- **macOS 26 上で Core Audio Tap がシステム出力を取り込める**こと
-- 取り込んだ PCM を **IO proc 内で線形ゲイン** して、**default output へラウンドトリップ** できること
+- **macOS 26 上でシステム出力相当の音声をアプリ内へ取り込める**こと
+- 取り込んだ PCM を **ring buffer + AVAudioSourceNode** 経由で線形ゲインし、default output へ戻せること
 - **元音と加工後音が二重に鳴らない**こと（エコー防止: `muteBehavior = .muted`）
 - 100% / 200% / 400% の差が**聴感で分かる**こと
 - 100% 復帰が**1秒以内**に効くこと
-- アプリ終了 / 強制終了で **OS 側に tap / aggregate device がゴミとして残らない**こと
+- アプリ終了で **Core Audio process tap / aggregate device が解放される**こと
 
 ## データフロー
 
 ```
 [他アプリの音声]
-   ↓ aggregate device （セットアップ後、これが default output になる）
-   ↓ sub-device として含まれる default output device (Hardware)
-   ↓ tap (muteBehavior=.muted → 元音は出ない)
-   ↓ aggregate device.input
-   ↓ IO proc (AudioIOProcImpl, リアルタイム: `sample * _gainLinear`)
-   ↓ aggregate device.output
-   ↓ sub-device として含まれる default output device (Hardware)
+   ├─ Core Audio process tap (muteBehavior=.muted → 元音を止める)
+   └─ ScreenCaptureKit audio capture
+        ↓
+     PCMFloatRingBuffer
+        ↓
+     AVAudioSourceNode (`GainProcessor.applyLimitedGain`)
+        ↓
+     AVAudioEngine main mixer
+        ↓
 [スピーカー / ヘッドホン]
 ```
 
-`muteBehavior = .muted` のおかげで、tap 元の音が default output から直接出ない。代わりに **IO proc が必ず同じ音量を出力する責任を持つ**。終了時は aggregate device を破棄する前に、必ず元の default output device に戻す。
+`muteBehavior = .muted` のおかげで、tap対象の元音が直接出にくくなる。自アプリのAVAudioEngine出力はtap対象から除外し、加工後音だけを聴こえる経路にする。
 
 ## ディレクトリ構成
 
@@ -54,14 +58,16 @@ spike/core-audio-tap/
 ├── CoreAudioTapPoC.xcodeproj/         (xcodegen で生成)
 ├── CoreAudioTapPoC/
 │   ├── CoreAudioTapPoCApp.swift       (@main, MenuBarExtra)
-│   ├── CoreAudioTapPoC-Bridging-Header.h   (Obj-C++ を Swift に公開)
+│   ├── CoreAudioTapPoC-Bridging-Header.h   (旧IOProc実験用。active経路では未使用)
 │   ├── ContentView.swift              (SwiftUI: Slider / ON-OFF / Reset / Quit)
 │   ├── Audio/
-│   │   ├── AudioIOProc.h              (Swift 公開 API、IO proc ハンドル)
-│   │   ├── AudioIOProc.mm             (IO proc 本体、リアルタイムゲイン処理)
-│   │   ├── SystemTap.swift            (CATapDescription + AggregateDevice + default output 切替)
+│   │   ├── BoostAudioPipeline.swift   (active: ScreenCaptureKit + ring buffer + AVAudioEngine)
+│   │   ├── ScreenCaptureAudioSource.swift
+│   │   ├── PCMFloatRingBuffer.swift
+│   │   ├── SystemTap.swift            (process tap + aggregate device。元音ミュート用)
 │   │   ├── PoCAudioEngine.swift       (Swift 側オーケストレータ)
-│   │   └── GainProcessor.swift        (linear→dB の数式ヘルパと単体テスト用)
+│   │   ├── GainProcessor.swift        (linear gain + soft limiter)
+│   │   └── AudioIOProc.h/.mm          (旧IOProc実験。active経路では未使用)
 │   └── Resources/
 │       ├── Info.plist                 (NSAudioCaptureUsageDescription 入り, LSUIElement=true)
 │       └── CoreAudioTapPoC.entitlements (Hardened Runtime ON, Sandbox OFF)
@@ -112,25 +118,24 @@ open build/Build/Products/Debug/CoreAudioTapPoC.app
 ```
 
 初回起動時に **`NSAudioCaptureUsageDescription` の OS ダイアログ**が出るので「許可」する。  
-以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押すと aggregate device 上で IO proc がラウンドトリップを駆動する。
+以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / event log を確認できる。
 
 ## 検証チェックリスト
 
-`docs/TECH_SPIKE.md` の Done 条件と対応する手動チェック:
+現在の v0.1 beta PoC で重点的に確認する手動チェック:
 
 ```
 [ ] YouTube 音声を取得できた（Start 直後から聴こえる）
 [ ] 100%（素通し）で原音と同等に聴こえる
 [ ] 200% / 400% で音量が明確に上がる
-[ ] 元音と加工後音が二重に鳴らない（.muted が効いている）
+[ ] 元音と加工後音が二重に鳴らない
 [ ] 100% 復帰できる
-[ ] アプリ終了で通常出力に戻る（Stop 後に Default 出力になる）
-[ ] スリープ前にゲインが 1.0 へ戻る（手動テストは省略可）
-[ ] スリープから復帰して保存値へ復元する（手動テストは省略可）
+[ ] アプリ終了で通常出力に戻る
 [ ] 強制終了後に OS 側に tap/routing が残らない
 [ ] 権限拒否でクラッシュしない（Setting > Privacy で拒否して再起動）
 [ ] マイク権限ダイアログが出ない
-[ ] レイテンシが 200ms 未満の体感
+[ ] レイテンシが許容範囲
+[ ] ブツ音・ノイズが常用不能なほど出ない
 ```
 
 ### 強制終了の検証手順
@@ -167,20 +172,23 @@ system_profiler SPAudioDataType | grep -i 'hbb-poc'
 
 | ファイル | 役割 | 対応する設計ドキュメント |
 |---|---|---|
-| `AudioIOProc.h` / `.mm` | リアルタイム IO proc、線形ゲイン乗算（現在の active 実装） | [ARCHITECTURE §3 Audio Engine層](../../docs/ARCHITECTURE.md) / [RISKS §3 レイテンシ](../../docs/RISKS.md) / [RISKS §5 終了時の音量リーク](../../docs/RISKS.md) |
-| `SystemTap.swift` | CATapDescription + AggregateDevice + default output 切替復元 | [ARCHITECTURE §3](../../docs/ARCHITECTURE.md) / [RISKS §1 Core Audio Tap の実現性](../../docs/RISKS.md) |
+| `BoostAudioPipeline.swift` | active 実装。ScreenCaptureKit capture、ring buffer、AVAudioEngine出力を接続 | [ARCHITECTURE §3 Audio Engine層](../../docs/ARCHITECTURE.md) / [RISKS §3 レイテンシ](../../docs/RISKS.md) |
+| `ScreenCaptureAudioSource.swift` | ScreenCaptureKit audio buffer を ring buffer へ書き込む | [TECH_SPIKE](../../docs/TECH_SPIKE.md) |
+| `PCMFloatRingBuffer.swift` | capture/render間のバッファ。ゲインと簡易リミッタを適用 | [RISKS §3 レイテンシ](../../docs/RISKS.md) / [RISKS §4 音割れ](../../docs/RISKS.md) |
+| `SystemTap.swift` | CATapDescription + AggregateDevice。active経路では主に元音ミュート用 | [ARCHITECTURE §3](../../docs/ARCHITECTURE.md) / [RISKS §1 Core Audio Tap の実現性](../../docs/RISKS.md) |
 | `PoCAudioEngine.swift` | Swift 側オーケストレータ、UI バインド、ON/OFF 状態管理 | [ARCHITECTURE §データフロー](../../docs/ARCHITECTURE.md) |
-| `GainProcessor.swift` | linear→dB の数式ヘルパ（IO proc は直接 linear を使うので runtime では未使用） | [ARCHITECTURE §3 ゲインの実装方式](../../docs/ARCHITECTURE.md) |
+| `GainProcessor.swift` | linear→dB の数式ヘルパと soft limiter | [ARCHITECTURE §3 ゲインの実装方式](../../docs/ARCHITECTURE.md) |
+| `AudioIOProc.h` / `.mm` | 旧IOProc実験の残骸。active経路では未使用 | [JOURNAL](./JOURNAL.md) |
 | `Info.plist` | NSAudioCaptureUsageDescription、LSUIElement | [PERMISSIONS §Info.plist](../../docs/PERMISSIONS.md) |
 | `*.entitlements` | Hardened Runtime、App Sandbox OFF | [PERMISSIONS §Entitlements](../../docs/PERMISSIONS.md) |
-| `CoreAudioTapPoC-Bridging-Header.h` | Obj-C++ (AudioIOProc.h) を Swift に公開 | — |
+| `CoreAudioTapPoC-Bridging-Header.h` | 旧IOProc実験用。active経路では未使用 | — |
 | `CoreAudioTapPoCApp.swift` | `MenuBarExtra` 常駐エントリポイント | [ARCHITECTURE §1 UI Layer](../../docs/ARCHITECTURE.md) |
 
 ## 次のステップ
 
-PoC の Done 条件をすべて満たしたら:
+v0.1 beta PoC から次に進む場合:
 
-1. `docs/TECH_SPIKE.md` の PoC チェックリストを埋める
-2. この `spike/core-audio-tap/` の実装を `hazakura-volume-booster/` ルート直下の Xcode プロジェクト（v0.1 本体）へ移植する
-3. v0.1 本体プロジェクトを `xcodegen` ベースで再構築する
-4. v0.1 の DoD（[ROADMAP §v0.1 MVP](../../docs/ROADMAP.md#v01-mvp)）を順番に潰していく
+1. 強制終了・スリープ復帰・出力デバイス変更時の挙動を確認する
+2. `docs/TECH_SPIKE.md` の結果欄を更新する
+3. この `spike/core-audio-tap/` の実装を本体プロジェクトへ昇格するか判断する
+4. Developer ID署名 / Notarized DMG / Privacy Manifest を整備する

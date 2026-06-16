@@ -2,7 +2,20 @@
 
 > 関連: [ARCHITECTURE §Audio Engine層](./ARCHITECTURE.md) / [RISKS §1 🔴 Core Audio Tap の実現性](./RISKS.md) / [ROADMAP §v0.1 MVP](./ROADMAP.md#v01-mvp) / [PERMISSIONS §Info.plist](./PERMISSIONS.md)
 
-このドキュメントは、**Hazakura Boost v0.1 の実装に着手する前に必ず通す技術検証（PoC）**のゴール・Done 条件・撤退ラインを定義する。**PoC の Done 条件を満たさない限り v0.1 の実装には入らない**。
+このドキュメントは、**Hazakura Boost v0.1 の実装に着手する前に必ず通す技術検証（PoC）**のゴール・Done 条件・撤退ラインを定義する。
+
+## 現在の判定（2026-06-17）
+
+当初想定した **Core Audio Tap + aggregate device + IO proc** のラウンドトリップ経路は、IO proc が駆動しない／HALOutput AudioUnit が aggregate device を受け付けないため、v0.1 beta の active 経路としては採用しない。
+
+現在の v0.1 beta PoC は、次の折衷構成で動作している。
+
+- Core Audio process tap: 元音を `.muted` にして二重再生を抑える
+- ScreenCaptureKit: システム音声をアプリ内へ取り込む
+- PCMFloatRingBuffer: capture/render間の時間差を吸収する
+- AVAudioSourceNode: ring bufferを読み、ゲイン処理後の音を出力する
+
+ユーザーの手元確認では、音量ブースト、二重再生の抑制、音質劣化の軽減は v0.1 beta として許容範囲に入った。未確認のまま残す項目は、強制終了後の残骸確認、スリープ復帰、出力デバイス変更、配布用署名・公証である。
 
 ## ゴール
 
@@ -111,4 +124,5 @@ mkdir -p spike/core-audio-tap
 
 ## 変更履歴
 
+- v2 (2026-06-17): 純Core Audio IOProc経路は不採用。ScreenCaptureKit + ring buffer + AVAudioEngine 出力を v0.1 beta PoC の active 経路として記録
 - v1 (2026-06-14): 初版作成（ちかちゃんレビュー反映）

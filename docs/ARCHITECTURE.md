@@ -111,6 +111,8 @@ struct BoostState: Equatable {
 
 **ゲインの実装方式**（重要）:
 
+> 現在の `spike/core-audio-tap/` v0.1 beta PoC は、下記の当初案Aではなく、ScreenCaptureKitで取得したPCMを `PCMFloatRingBuffer` に入れ、`AVAudioSourceNode` で読み出す際に `GainProcessor.applyLimitedGain` を適用している。以下は本体化時に再評価する設計候補として残す。
+
 `AVAudioMixerNode.outputVolume`（=`AVAudioMixing.volume`）の有効範囲は **0.0〜1.0** で、**100% を超えるブーストには使えない**。400%（=+12.04 dB相当）を成立させるために、以下のいずれかで実装する。
 
 - **案A（既定）**: `AVAudioUnitEQ` の `bands[0].gain`（dB 単位）で信号全体を持ち上げる
@@ -126,7 +128,10 @@ v0.1 では **案A を最優先**、必要に応じて 案B/C にフォールバ
 
 - **案α（既定）**: `Core Audio Tap` を使い、macOS 26上でシステム出力をプロセス内へ取り込み、案Aでゲインを掛けてからデフォルト出力へ戻す
   - ドライバ不要で「タップして加工して戻す」が可能になり得る
-  - ただし **v0.1着手前に [`docs/TECH_SPIKE.md`](./TECH_SPIKE.md) のPoCで成立可否を必ず確認**する
+  - `docs/TECH_SPIKE.md` のPoCでは、この純Core Audio IOProc経路は active 実装として採用しない判断になった
+- **現在のv0.1 beta PoC**: Core Audio process tap は元音のミュートに使い、音声取得は ScreenCaptureKit、出力は ring buffer + AVAudioEngine に分離する
+  - v0.1 beta として手元利用できる状態まで到達
+  - 追加の安全検証と配布整備が必要
 - 案αが成立しなければ v0.1 は保留し、**縮退版（自プロセス音声のみ）には逃げない**（自プロセス音声だけのデモは Hazakura Boost の価値提案に合わないため）
 
 > 重要: **macOS 26+ のみを対象**とする。Core Audio Tap の過去OS API availability は参考情報扱いとし、実装・検証・DoD は **macOS 26 で固定**する。Availability分岐で実装を複雑化させない。
