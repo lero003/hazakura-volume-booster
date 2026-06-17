@@ -326,3 +326,7 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
   - スリープ前は `gain=1.0` 適用後に ScreenCaptureKit / AVAudioEngine / process tap を停止するよう変更
   - 復帰後は保存済み gain / ON-OFF 設定を使って fresh start する
   - 単体テスト 29/29 pass
+- **2026-06-17（wake auto-restart hardening）**:
+  - `didWakeNotification` に加えて `screensDidWakeNotification` でも復帰再開を試行
+  - 復帰直後の start が一度失敗しても短い retry で再試行する
+  - 単体テスト 30/30 pass

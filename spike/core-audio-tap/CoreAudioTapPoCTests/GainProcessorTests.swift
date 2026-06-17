@@ -317,7 +317,8 @@ final class GainProcessorTests: XCTestCase {
         let engine = PoCAudioEngine(
             audioBackend: backend,
             monitorsOutputDeviceChanges: false,
-            wakeRestoreDelayNanoseconds: 0
+            wakeRestoreDelayNanoseconds: 0,
+            wakeRestoreRetryDelaysNanoseconds: []
         )
 
         engine.configuredGain = 2.5
@@ -334,12 +335,38 @@ final class GainProcessorTests: XCTestCase {
     }
 
     @MainActor
+    func testWakeRestoreRetriesWhenFirstRestartFails() async throws {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(
+            audioBackend: backend,
+            monitorsOutputDeviceChanges: false,
+            wakeRestoreDelayNanoseconds: 0,
+            wakeRestoreRetryDelaysNanoseconds: [0]
+        )
+
+        engine.configuredGain = 2.5
+        await engine.startAsync()
+        engine.prepareForSleep()
+        backend.queuedStartErrors = [FakeAudioProcessingBackend.makeError("wake start failed once")]
+
+        await engine.restoreAfterWakeAsync()
+
+        XCTAssertTrue(engine.isRunning)
+        XCTAssertNil(engine.lastError)
+        XCTAssertEqual(backend.startCount, 3)
+        XCTAssertGreaterThanOrEqual(backend.stopCount, 2)
+        XCTAssertEqual(backend.appliedGains.last, 2.5)
+        XCTAssertEqual(engine.statusText, "running")
+    }
+
+    @MainActor
     func testWakeRestoreDoesNotStartWhenNoSleepSnapshotExists() async {
         let backend = FakeAudioProcessingBackend()
         let engine = PoCAudioEngine(
             audioBackend: backend,
             monitorsOutputDeviceChanges: false,
-            wakeRestoreDelayNanoseconds: 0
+            wakeRestoreDelayNanoseconds: 0,
+            wakeRestoreRetryDelaysNanoseconds: []
         )
 
         await engine.restoreAfterWakeAsync()
@@ -357,10 +384,14 @@ private final class FakeAudioProcessingBackend: AudioProcessingBackend, @uncheck
     private(set) var appliedGains: [Float] = []
 
     var diagnostics = AudioBackendDiagnostics()
+    var queuedStartErrors: [Error] = []
 
     func start() async throws {
         didStart = true
         startCount += 1
+        if !queuedStartErrors.isEmpty {
+            throw queuedStartErrors.removeFirst()
+        }
     }
 
     func stop() {
@@ -370,5 +401,13 @@ private final class FakeAudioProcessingBackend: AudioProcessingBackend, @uncheck
 
     func setLinearGain(_ linearGain: Float) {
         appliedGains.append(linearGain)
+    }
+
+    static func makeError(_ message: String) -> NSError {
+        NSError(
+            domain: "FakeAudioProcessingBackend",
+            code: 1,
+            userInfo: [NSLocalizedDescriptionKey: message]
+        )
     }
 }

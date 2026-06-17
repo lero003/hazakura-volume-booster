@@ -124,6 +124,7 @@ final class PoCAudioEngine: ObservableObject {
     private let outputDeviceMonitor = DefaultOutputDeviceMonitor()
     private let monitorsOutputDeviceChanges: Bool
     private let wakeRestoreDelayNanoseconds: UInt64
+    private let wakeRestoreRetryDelaysNanoseconds: [UInt64]
     private var diagnosticTimer: Timer?
     private var startTask: Task<Void, Never>?
     private var wakeRestoreTask: Task<Void, Never>?
@@ -135,13 +136,15 @@ final class PoCAudioEngine: ObservableObject {
         diagnosticLog: DiagnosticLogStore = DiagnosticLogStore(),
         audioBackend: (any AudioProcessingBackend)? = nil,
         monitorsOutputDeviceChanges: Bool = true,
-        wakeRestoreDelayNanoseconds: UInt64 = 1_000_000_000
+        wakeRestoreDelayNanoseconds: UInt64 = 1_000_000_000,
+        wakeRestoreRetryDelaysNanoseconds: [UInt64] = [2_000_000_000, 5_000_000_000]
     ) {
         let relay = BackendFailureRelay()
         self.diagnosticLog = diagnosticLog
         self.backendFailureRelay = relay
         self.monitorsOutputDeviceChanges = monitorsOutputDeviceChanges
         self.wakeRestoreDelayNanoseconds = wakeRestoreDelayNanoseconds
+        self.wakeRestoreRetryDelaysNanoseconds = wakeRestoreRetryDelaysNanoseconds
         self.audioBackend = audioBackend ?? BoostAudioPipeline(
             diagnosticLog: diagnosticLog,
             onBackendFailure: { [relay] message in
@@ -309,28 +312,52 @@ final class PoCAudioEngine: ObservableObject {
             return
         }
 
-        do {
-            statusText = "waking"
-            diagnosticLog.record(.info, "Wake detected; restarting ScreenCaptureKit audio pipeline")
-            try await audioBackend.start()
+        await restoreAudioAfterWakeWithRetries()
+    }
 
-            isRunning = true
-            applyEffectiveGain()
+    private func restoreAudioAfterWakeWithRetries() async {
+        var attemptIndex = 0
 
-            lastError = nil
-            statusText = "running"
-            hasReportedMissingCaptureBuffers = false
-            hasReportedMissingRenderCalls = false
-            startDiagnosticTimer()
-            startOutputDeviceMonitor()
-            diagnosticLog.record(.info, "Wake restore finished")
-        } catch {
-            let errMsg = error.localizedDescription
-            log.error("wake restore failed: \(errMsg, privacy: .public)")
-            diagnosticLog.record(.error, "Wake restore failed: \(errMsg)")
-            lastError = errMsg
-            statusText = "restart required"
-            cleanupAfterFailure()
+        while true {
+            do {
+                statusText = attemptIndex == 0 ? "waking" : "waking retry \(attemptIndex)"
+                diagnosticLog.record(.info, "Wake restore attempt \(attemptIndex + 1): restarting ScreenCaptureKit audio pipeline")
+                try await audioBackend.start()
+
+                isRunning = true
+                applyEffectiveGain()
+
+                lastError = nil
+                statusText = "running"
+                hasReportedMissingCaptureBuffers = false
+                hasReportedMissingRenderCalls = false
+                startDiagnosticTimer()
+                startOutputDeviceMonitor()
+                diagnosticLog.record(.info, "Wake restore finished")
+                return
+            } catch {
+                let errMsg = error.localizedDescription
+                log.error("wake restore attempt failed: \(errMsg, privacy: .public)")
+                diagnosticLog.record(.warning, "Wake restore attempt \(attemptIndex + 1) failed: \(errMsg)")
+                cleanupAfterFailure()
+
+                guard attemptIndex < wakeRestoreRetryDelaysNanoseconds.count else {
+                    lastError = errMsg
+                    statusText = "restart required"
+                    diagnosticLog.record(.error, "Wake restore failed after \(attemptIndex + 1) attempts: \(errMsg)")
+                    return
+                }
+
+                let delay = wakeRestoreRetryDelaysNanoseconds[attemptIndex]
+                attemptIndex += 1
+                if delay > 0 {
+                    do {
+                        try await Task.sleep(nanoseconds: delay)
+                    } catch {
+                        return
+                    }
+                }
+            }
         }
     }
 

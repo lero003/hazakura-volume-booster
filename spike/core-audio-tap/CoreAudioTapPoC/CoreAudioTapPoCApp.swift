@@ -20,6 +20,7 @@ final class CoreAudioTapPoCAppDelegate: NSObject, NSApplicationDelegate {
 
     private var sleepObserver: Any?
     private var wakeObserver: Any?
+    private var screensWakeObserver: Any?
     private var lockFileDescriptor: CInt = -1
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -48,6 +49,17 @@ final class CoreAudioTapPoCAppDelegate: NSObject, NSApplicationDelegate {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor in
+                self?.engine.diagnosticLog.record(.info, "Workspace wake notification received")
+                self?.engine.restoreAfterWake()
+            }
+        }
+        screensWakeObserver = center.addObserver(
+            forName: NSWorkspace.screensDidWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.engine.diagnosticLog.record(.info, "Screen wake notification received")
                 self?.engine.restoreAfterWake()
             }
         }
@@ -96,8 +108,12 @@ final class CoreAudioTapPoCAppDelegate: NSObject, NSApplicationDelegate {
         if let wakeObserver {
             center.removeObserver(wakeObserver)
         }
+        if let screensWakeObserver {
+            center.removeObserver(screensWakeObserver)
+        }
         sleepObserver = nil
         wakeObserver = nil
+        screensWakeObserver = nil
     }
 
     private static var isRunningUnderXCTest: Bool {
