@@ -63,6 +63,8 @@ xcodebuild \
   -destination 'platform=macOS' \
   -derivedDataPath build \
   build
+
+./scripts/build_release_candidate.sh
 ```
 
 起動:
@@ -70,6 +72,8 @@ xcodebuild \
 ```bash
 open spike/core-audio-tap/build/Build/Products/Debug/CoreAudioTapPoC.app
 ```
+
+普段の開発確認は `Debug` / Apple Development 署名、GitHub Release 前の確認は `./scripts/build_release_candidate.sh` で作る `Release` / Developer ID 署名の app を使います。公証と staple は外部配布直前の別工程です。
 
 ## 企画書の要点（要約）
 

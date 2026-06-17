@@ -11,6 +11,7 @@
 - `daily-use-ok` に向け、コード側では Quit / `⌘Q` / スリープ前の neutral gain、二重起動抑止、出力デバイス変更時の安全停止、Dev 診断拡張と health 判定を追加済み
 - 計画ドキュメント（`docs/` 配下 8 本）は完成済み、レビュー反映済み
 - 残る主な確認は、強制終了後の残骸確認、スリープ復帰・出力デバイス変更の実機挙動、10分以上の連続再生、配布用署名・公証
+- 署名レーンは、普段の開発を `Debug` / Apple Development、GitHub Release 前の手元確認を `Release` / Developer ID Application として分離する。公証は Release 候補に対する別工程。
 - 詳細は後述の「PoC 試行の歴史」「現コードの構成」「検証チェックリスト」を参照
 
 ## 環境

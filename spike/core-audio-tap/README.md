@@ -102,6 +102,9 @@ xcodebuild \
   -derivedDataPath build \
   clean build
 
+# Developer ID 署名の Release 候補ビルド（公証は別工程）
+./scripts/build_release_candidate.sh
+
 # ユニットテスト
 xcodebuild \
   -project CoreAudioTapPoC.xcodeproj \
@@ -116,6 +119,8 @@ xcodebuild \
 ```bash
 open build/Build/Products/Debug/CoreAudioTapPoC.app
 ```
+
+普段の開発と単体テストは `Debug` / `Apple Development` 署名を使う。GitHub Release 前の手元確認は `Release` / `Developer ID Application` 署名の `build/Build/Products/Release/CoreAudioTapPoC.app` を使う。外部配布する場合は、この Release 候補に対して notarization / staple を別工程で通してから配布する。
 
 初回起動時に **`NSAudioCaptureUsageDescription` の OS ダイアログ**が出るので「許可」する。  
 以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / health / event log を確認できる。`Copy` で app version / build / status / health / recent events を含む診断スナップショットをクリップボードへコピーできる。

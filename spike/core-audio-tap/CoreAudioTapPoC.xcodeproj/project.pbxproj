@@ -197,12 +197,10 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					AC15BDF8B3DCF02AA9A1C856 = {
-						DevelopmentTeam = "";
-						ProvisioningStyle = Automatic;
+						DevelopmentTeam = 8BNUB2R9C8;
 					};
 					D042BE01F8C702AAC576F42E = {
-						DevelopmentTeam = "";
-						ProvisioningStyle = Automatic;
+						DevelopmentTeam = 8BNUB2R9C8;
 					};
 				};
 			};
@@ -320,8 +318,9 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Apple Development";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Developer ID Application";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 8BNUB2R9C8;
