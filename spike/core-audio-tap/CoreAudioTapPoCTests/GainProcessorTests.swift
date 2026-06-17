@@ -95,6 +95,23 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertNil(plist["NSMicrophoneUsageDescription"])
     }
 
+    func testInfoPlistUsesV02ReleaseVersion() throws {
+        let plist = try loadInfoPlist()
+
+        XCTAssertEqual(plist["CFBundleShortVersionString"] as? String, "0.2.0")
+        XCTAssertEqual(plist["CFBundleVersion"] as? String, "2")
+    }
+
+    func testReleaseCandidateScriptUsesVersionedZipName() throws {
+        let source = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/scripts/build_release_candidate.sh"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("CFBundleShortVersionString"))
+        XCTAssertTrue(source.contains("HazakuraBoost-v${APP_VERSION}-developer-id.zip"))
+    }
+
     func testContentViewSourceKeepsOnlyEssentialBoostControls() throws {
         let source = try String(
             contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/ContentView.swift"),

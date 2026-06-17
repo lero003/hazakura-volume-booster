@@ -48,8 +48,8 @@ targets:
         LSUIElement: true
         NSAudioCaptureUsageDescription: "Hazakura Boost PoC uses access to system audio output to apply a local volume boost. It does not record, store, or transmit audio."
         NSHumanReadableCopyright: "Hazakura Boost PoC — Core Audio Tap verification"
-        CFBundleShortVersionString: "0.0.1"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "0.2.0"
+        CFBundleVersion: "2"
         HazakuraSigningKind: "$(CODE_SIGN_IDENTITY)"
     entitlements:
       path: CoreAudioTapPoC/Resources/CoreAudioTapPoC.entitlements

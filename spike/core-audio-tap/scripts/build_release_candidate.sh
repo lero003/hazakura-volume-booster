@@ -6,7 +6,6 @@ PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DERIVED_DATA_PATH="${DERIVED_DATA_PATH:-$PROJECT_DIR/build}"
 DIST_DIR="${DIST_DIR:-$PROJECT_DIR/dist}"
 APP_PATH="$DERIVED_DATA_PATH/Build/Products/Release/CoreAudioTapPoC.app"
-ZIP_PATH="$DIST_DIR/CoreAudioTapPoC-developer-id.zip"
 ENTITLEMENTS_PATH="$DIST_DIR/CoreAudioTapPoC-release.entitlements.plist"
 
 cd "$PROJECT_DIR"
@@ -18,6 +17,9 @@ xcodebuild \
   -destination 'platform=macOS' \
   -derivedDataPath "$DERIVED_DATA_PATH" \
   clean build
+
+APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP_PATH/Contents/Info.plist")"
+ZIP_PATH="$DIST_DIR/HazakuraBoost-v${APP_VERSION}-developer-id.zip"
 
 codesign --verify --strict --deep --verbose=2 "$APP_PATH"
 
