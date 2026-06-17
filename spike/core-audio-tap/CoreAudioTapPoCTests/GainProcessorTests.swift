@@ -412,6 +412,18 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(source.contains("NSApplication.shared.terminate(nil)"))
     }
 
+    func testShutdownSafetyVerificationScriptChecksForTapResidue() throws {
+        let source = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/scripts/verify_shutdown_safety.sh"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("system_profiler SPAudioDataType"))
+        XCTAssertTrue(source.contains("hbb-poc"))
+        XCTAssertTrue(source.contains("pgrep"))
+        XCTAssertTrue(source.contains("CoreAudioTapPoC"))
+    }
+
     @MainActor
     func testShutdownForAppTerminationForcesNeutralBeforeStop() async throws {
         let backend = FakeAudioProcessingBackend()

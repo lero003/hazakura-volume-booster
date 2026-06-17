@@ -271,11 +271,11 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
 [ ] 100%（素通し）で原音と同等に聴こえる
 [ ] 200% / 400% で音量が明確に上がる
 [ ] 元音と加工後音が二重に鳴らない
-[ ] 100% 復帰できる
+[ ] スライダーで 100% に戻せる
 [ ] アプリ終了で通常出力に戻る
 [ ] スリープ前にゲインが 1.0 へ戻る
 [ ] スリープから復帰して保存値へ復元する
-[ ] 強制終了後に OS 側に tap/routing が残らない
+[ ] 強制終了後に `./scripts/verify_shutdown_safety.sh` が OK になる
 [ ] 権限拒否でクラッシュしない
 [ ] マイク権限ダイアログが出ない
 [ ] レイテンシが 200ms 未満の体感
@@ -344,3 +344,6 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
   - `100%に戻す`、`0%/100%/200%/400%` プリセット、`ON` トグルを削除
   - UI を 0%〜400% スライダー、開始/停止、終了、Dev 診断へ縮小
   - `ON` 状態は start/stop と統合し、停止中は backend gain を neutral に戻す
+- **2026-06-17（shutdown verification slice）**:
+  - `scripts/verify_shutdown_safety.sh` を追加
+  - 通常終了または強制終了後に `CoreAudioTapPoC` プロセスと `hbb-poc` audio residue が残っていないことを確認できるようにした
