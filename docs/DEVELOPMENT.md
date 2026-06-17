@@ -101,8 +101,8 @@ xcodebuild \
 
 - **ロジック層（`BoostController`）**: ほぼ全パスをユニットテストでカバー
   - boostPercent の範囲クランプ（0.0〜4.0）
-  - 100%ボタン押下時の状態遷移
-  - ON/OFFトグルで値が保持される
+  - Sliderで100%へ戻す状態遷移
+  - Stopで値を保持しつつ出力がニュートラルへ戻る
   - `shutdown()` 呼び出しで内部状態が「ニュートラル」へ戻る
 - **Audio Engine層**: 実機動作は手動 / Instruments、コード上は型と状態遷移をテスト
   - 実PCMを流しての自動テストは macOS のAudio APIとCIの両面で難しいため、**v0.1では回帰テストに含めない**
