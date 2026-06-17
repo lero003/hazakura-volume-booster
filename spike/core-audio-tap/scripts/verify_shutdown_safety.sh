@@ -4,7 +4,7 @@ set -euo pipefail
 PROCESS_NAME="${PROCESS_NAME:-CoreAudioTapPoC}"
 TAP_PATTERN="${TAP_PATTERN:-hbb-poc}"
 
-echo "Checking Hazakura Boost shutdown safety..."
+echo "Checking Hazakura Amp! shutdown safety..."
 
 if pgrep -x "$PROCESS_NAME" >/dev/null 2>&1; then
   echo "FAIL: $PROCESS_NAME is still running." >&2

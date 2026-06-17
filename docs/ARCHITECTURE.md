@@ -1,8 +1,8 @@
 # アーキテクチャ
 
-> 関連: [企画書 §技術方針](../hazakura-volume-booster企画書.md) / [ROADMAP](./ROADMAP.md) / [RISKS](./RISKS.md) / [PERMISSIONS](./PERMISSIONS.md)
+> 関連: [企画書 §技術方針](../hazakura-amp企画書.md) / [ROADMAP](./ROADMAP.md) / [RISKS](./RISKS.md) / [PERMISSIONS](./PERMISSIONS.md)
 
-Hazakura Boostの中核は、**「Macのシステム音を一時的にタップし、ゲインを掛けてから出力へ戻す」**という一本のパイプラインです。Macの音量をソフトウェアから持ち上げるには、原則としてこの「タップ → ゲイン → 出力」のどこかに割り込む必要があります。
+Hazakura Amp!の中核は、**「Macのシステム音を一時的にタップし、ゲインを掛けてから出力へ戻す」**という一本のパイプラインです。Macの音量をソフトウェアから持ち上げるには、原則としてこの「タップ → ゲイン → 出力」のどこかに割り込む必要があります。
 
 このドキュメントは、v0.1〜v0.2を視野に入れたシステム全体のアーキ・主要コンポーネント・データフロー・技術選定の理由を整理します。
 
@@ -56,7 +56,7 @@ v0.1では、UIとState、Audio Engineの3層に分けて考えます。**Audio 
 - ブースト率/実行状態の表示
 
 主な型（予定）:
-- `HazakuraBoostApp` … `@main` の `App`
+- `HazakuraAmpApp` … `@main` の `App`
 - `MenuBarContent` … `MenuBarExtra` の中身
 - `BoostPopoverView` … ポップオーバーのSwiftUIビュー
 - `BoostSliderView` … 0%〜400%のSlider
@@ -134,7 +134,7 @@ v0.1 では **案A を最優先**、必要に応じて 案B/C にフォールバ
 - **現在のv0.1 beta PoC**: Core Audio process tap は元音のミュートに使い、音声取得は ScreenCaptureKit、出力は ring buffer + AVAudioEngine に分離する
   - v0.1 beta として手元利用できる状態まで到達
   - 追加の安全検証と配布整備が必要
-- 案αが成立しなければ v0.1 は保留し、**縮退版（自プロセス音声のみ）には逃げない**（自プロセス音声だけのデモは Hazakura Boost の価値提案に合わないため）
+- 案αが成立しなければ v0.1 は保留し、**縮退版（自プロセス音声のみ）には逃げない**（自プロセス音声だけのデモは Hazakura Amp! の価値提案に合わないため）
 
 > 重要: **macOS 26+ のみを対象**とする。Core Audio Tap の過去OS API availability は参考情報扱いとし、実装・検証・DoD は **macOS 26 で固定**する。Availability分岐で実装を複雑化させない。
 
@@ -145,7 +145,7 @@ v0.1 では **案A を最優先**、必要に応じて 案B/C にフォールバ
 ### 起動時
 
 ```
-HazakuraBoostApp.init()
+HazakuraAmpApp.init()
    └─▶ @StateObject controller = BoostController(
            audioEngine: SystemAudioEngine(),  // 未起動（stopped）
            settings: BoostSettings()
@@ -243,8 +243,8 @@ StopButton
 実際のXcodeプロジェクトは未作成のため、雛形のみ示す。
 
 ```
-hazakura-volume-booster/
-├── hazakura-volume-booster企画書.md
+hazakura-amp/
+├── hazakura-amp企画書.md
 ├── README.md
 ├── docs/
 │   ├── ARCHITECTURE.md   ← このファイル
@@ -253,9 +253,9 @@ hazakura-volume-booster/
 │   ├── RISKS.md
 │   ├── PERMISSIONS.md
 │   └── UI_DESIGN.md
-└── hazakura-volume-booster/   ← Xcodeプロジェクト ルート
+└── hazakura-amp/              ← Xcodeプロジェクト ルート
     ├── App/
-    │   ├── HazakuraBoostApp.swift
+    │   ├── HazakuraAmpApp.swift
     │   └── AppDelegate.swift    (NSApp終了時の安全停止用)
     ├── UI/
     │   ├── MenuBarContent.swift
@@ -271,7 +271,7 @@ hazakura-volume-booster/
     ├── Resources/
     │   ├── Assets.xcassets
     │   ├── Info.plist
-    │   └── HazakuraBoost.entitlements
+    │   └── HazakuraAmp.entitlements
     └── Tests/
         ├── BoostControllerTests.swift
         └── AudioEngineTests.swift

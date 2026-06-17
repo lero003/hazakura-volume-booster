@@ -56,7 +56,7 @@ struct BoostStatusPresentation: Equatable {
         case PoCAudioEngineStatus.permissionDenied.rawValue:
             return BoostStatusPresentation(
                 headline: "System audio access is not allowed",
-                detail: "Allow CoreAudioTapPoC in System Settings > Privacy & Security, then press Start again.",
+                detail: "Allow Hazakura Amp! in System Settings > Privacy & Security, then press Start again.",
                 severity: .warning,
                 showsErrorBanner: true
             )
@@ -89,7 +89,7 @@ struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Hazakura Boost")
+                Text("Hazakura Amp!")
                     .font(.headline)
                 Spacer()
                 StatusIndicator(isRunning: engine.isRunning)
@@ -133,7 +133,7 @@ struct ContentView: View {
                     NSApplication.shared.terminate(nil)
                 }
                 .controlSize(.large)
-                .accessibilityLabel("Quit Hazakura Boost")
+                .accessibilityLabel("Quit Hazakura Amp!")
                 .accessibilityHint("Stops audio processing safely, then quits the app.")
             }
 

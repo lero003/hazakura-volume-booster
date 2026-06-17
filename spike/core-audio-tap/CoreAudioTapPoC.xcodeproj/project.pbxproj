@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0747C5D79879AF5A3E8F6A70 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 486F0A1566A640CD2E6101AE /* Assets.xcassets */; };
 		0BA372EA96C55B8A2EA43520 /* AudioProcessingBackend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 445FC41158747D8A4CEB1F39 /* AudioProcessingBackend.swift */; };
 		0E840654ABCED869BD979E08 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A1BCDA89A4F5624B815AC3B /* CoreMedia.framework */; };
 		0E93FD53E59E50292DF60970 /* ScreenCaptureAudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42BE1D410A43AB003B4625C /* ScreenCaptureAudioSource.swift */; };
@@ -48,6 +49,7 @@
 		3F54D9D7367BABF812BBFB80 /* CoreAudioTapPoC.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreAudioTapPoC.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		445FC41158747D8A4CEB1F39 /* AudioProcessingBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessingBackend.swift; sourceTree = "<group>"; };
 		48113286D3D81C85926E534B /* GainProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainProcessor.swift; sourceTree = "<group>"; };
+		486F0A1566A640CD2E6101AE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4A1BCDA89A4F5624B815AC3B /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		5695216ABEC67D6B415956DA /* BoostAudioPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoostAudioPipeline.swift; sourceTree = "<group>"; };
 		6FA550582B0E3A797D8D7783 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -108,6 +110,7 @@
 			isa = PBXGroup;
 			children = (
 				05DB9F49BE6DBDEC3144029D /* Audio */,
+				486F0A1566A640CD2E6101AE /* Assets.xcassets */,
 				D6DCF77F83A9EAB600C0A61E /* ContentView.swift */,
 				28178AF01151A50A07DD5392 /* CoreAudioTapPoC-Bridging-Header.h */,
 				CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */,
@@ -156,6 +159,7 @@
 			buildConfigurationList = D5CABE97402A7161366C8EAE /* Build configuration list for PBXNativeTarget "CoreAudioTapPoC" */;
 			buildPhases = (
 				D367AA61E5A36E26D86F0828 /* Sources */,
+				4A41CFFFF585B6498DF14FD3 /* Resources */,
 				9E5A6FB0B92C0EB489A777B4 /* Frameworks */,
 			);
 			buildRules = (
@@ -224,6 +228,17 @@
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		4A41CFFFF585B6498DF14FD3 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0747C5D79879AF5A3E8F6A70 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		68398722023B18DE560F8BCE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -264,7 +279,7 @@
 		085DB0D7F1E274C1D737B921 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = CoreAudioTapPoC/Resources/CoreAudioTapPoC.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
@@ -278,7 +293,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "dev.keisetsu.hazakura-volume-booster.poc";
-				PRODUCT_NAME = CoreAudioTapPoC;
+				PRODUCT_MODULE_NAME = CoreAudioTapPoC;
+				PRODUCT_NAME = "Hazakura Amp!";
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "CoreAudioTapPoC/CoreAudioTapPoC-Bridging-Header.h";
 				SWIFT_TREAT_WARNINGS_AS_ERRORS = NO;
@@ -362,14 +378,14 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "dev.keisetsu.hazakura-volume-booster.poc.tests";
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CoreAudioTapPoC.app/Contents/MacOS/CoreAudioTapPoC";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hazakura Amp!.app/Contents/MacOS/Hazakura Amp!";
 			};
 			name = Debug;
 		};
 		80A5FCF499EEA41CA3BA1F03 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = "";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = CoreAudioTapPoC/Resources/CoreAudioTapPoC.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
@@ -383,7 +399,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "dev.keisetsu.hazakura-volume-booster.poc";
-				PRODUCT_NAME = CoreAudioTapPoC;
+				PRODUCT_MODULE_NAME = CoreAudioTapPoC;
+				PRODUCT_NAME = "Hazakura Amp!";
 				SDKROOT = macosx;
 				SWIFT_OBJC_BRIDGING_HEADER = "CoreAudioTapPoC/CoreAudioTapPoC-Bridging-Header.h";
 				SWIFT_TREAT_WARNINGS_AS_ERRORS = NO;
@@ -404,7 +421,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 26.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "dev.keisetsu.hazakura-volume-booster.poc.tests";
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CoreAudioTapPoC.app/Contents/MacOS/CoreAudioTapPoC";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Hazakura Amp!.app/Contents/MacOS/Hazakura Amp!";
 			};
 			name = Release;
 		};

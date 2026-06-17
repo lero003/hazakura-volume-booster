@@ -1,4 +1,4 @@
-# Hazakura Boost v0.2
+# Hazakura Amp! v0.2
 
 Daily-use quality candidate for the active ScreenCaptureKit + ring buffer + AVAudioEngine PoC.
 
@@ -11,7 +11,7 @@ Daily-use quality candidate for the active ScreenCaptureKit + ring buffer + AVAu
 - Improved permission-denied recovery text.
 - Added version/build/signing/status/health/recent-events diagnostics copy.
 - Added `scripts/verify_shutdown_safety.sh` for process and `hbb-poc` residue checks.
-- Builds a Developer ID signed release candidate zip named `HazakuraBoost-v0.2.0-developer-id.zip`.
+- Builds a Developer ID signed release candidate zip named `HazakuraAmp-v0.2.0-developer-id.zip`.
 
 ## Known Boundaries
 

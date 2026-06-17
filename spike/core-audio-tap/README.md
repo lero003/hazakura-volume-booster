@@ -1,9 +1,11 @@
 # Core Audio Tap PoC
 
-> 親: `hazakura-volume-booster/` ルート  
+> 親: `hazakura-amp/` ルート
 > 関連: [`docs/TECH_SPIKE.md`](../../docs/TECH_SPIKE.md) / [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) / [`docs/RISKS.md`](../../docs/RISKS.md) / [`docs/PERMISSIONS.md`](../../docs/PERMISSIONS.md)
 
-Hazakura Boost v0.1 beta の現在の実体になっている技術検証（PoC）。
+Hazakura Amp! v0.2 candidate の現在の実体になっている技術検証（PoC）。
+
+アプリとしてユーザーに見える名称は `Hazakura Amp!`。`CoreAudioTapPoC` はターゲット名・スキーム名・内部ソースフォルダ名として当面維持する。
 
 このPoCは、当初想定した「Core Audio Tap + aggregate device + IO proc」の純Core Audio経路ではなく、次の折衷構成で動いている。
 
@@ -57,6 +59,7 @@ spike/core-audio-tap/
 ├── project.yml                        (xcodegen 用プロジェクト定義)
 ├── CoreAudioTapPoC.xcodeproj/         (xcodegen で生成)
 ├── CoreAudioTapPoC/
+│   ├── Assets.xcassets/               (Hazakura Amp! app icon)
 │   ├── CoreAudioTapPoCApp.swift       (@main, MenuBarExtra)
 │   ├── CoreAudioTapPoC-Bridging-Header.h   (旧IOProc実験用。active経路では未使用)
 │   ├── ContentView.swift              (SwiftUI: Slider / Start-Stop / Quit / Dev)
@@ -117,15 +120,15 @@ xcodebuild \
 ## 起動手順
 
 ```bash
-open build/Build/Products/Debug/CoreAudioTapPoC.app
+open "build/Build/Products/Debug/Hazakura Amp!.app"
 ```
 
-普段の開発と単体テストは `Debug` / `Apple Development` 署名を使う。GitHub Release 前の手元確認は `Release` / `Developer ID Application` 署名の `build/Build/Products/Release/CoreAudioTapPoC.app` を使う。外部配布する場合は、この Release 候補に対して notarization / staple を別工程で通してから配布する。
+普段の開発と単体テストは `Debug` / `Apple Development` 署名を使う。GitHub Release 前の手元確認は `Release` / `Developer ID Application` 署名の `build/Build/Products/Release/Hazakura Amp!.app` を使う。外部配布する場合は、この Release 候補に対して notarization / staple を別工程で通してから配布する。
 
 初回起動時に **`NSAudioCaptureUsageDescription` の OS ダイアログ**が出るので「許可」する。  
 以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。操作UIは 0%〜400% スライダー、開始/停止、終了、Dev 診断に絞っている。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / health / event log を確認できる。`Copy` で app version / build / signing kind / status / manual-start-required / health / recent events を含む診断スナップショットをクリップボードへコピーできる。
 
-Hazakura Boost はシステム音をローカル処理して音量を持ち上げる。録音・保存・外部送信はしない。マイク権限も要求しない。
+Hazakura Amp! はシステム音をローカル処理して音量を持ち上げる。録音・保存・外部送信はしない。マイク権限も要求しない。
 
 ## 検証チェックリスト
 

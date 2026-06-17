@@ -100,6 +100,7 @@ final class GainProcessorTests: XCTestCase {
 
         XCTAssertEqual(plist["CFBundleShortVersionString"] as? String, "0.2.0")
         XCTAssertEqual(plist["CFBundleVersion"] as? String, "2")
+        XCTAssertEqual(plist["CFBundleDisplayName"] as? String, "Hazakura Amp!")
     }
 
     func testReleaseCandidateScriptUsesVersionedZipName() throws {
@@ -109,7 +110,7 @@ final class GainProcessorTests: XCTestCase {
         )
 
         XCTAssertTrue(source.contains("CFBundleShortVersionString"))
-        XCTAssertTrue(source.contains("HazakuraBoost-v${APP_VERSION}-developer-id.zip"))
+        XCTAssertTrue(source.contains("HazakuraAmp-v${APP_VERSION}-developer-id.zip"))
     }
 
     func testContentViewSourceKeepsOnlyEssentialBoostControls() throws {
@@ -121,7 +122,7 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(source.contains(".accessibilityLabel(\"Boost level\")"))
         XCTAssertTrue(source.contains(".accessibilityValue(gainAccessibilityValue)"))
         XCTAssertTrue(source.contains(".accessibilityLabel(startStopAccessibilityLabel)"))
-        XCTAssertTrue(source.contains(".accessibilityLabel(\"Quit Hazakura Boost\")"))
+        XCTAssertTrue(source.contains(".accessibilityLabel(\"Quit Hazakura Amp!\")"))
         XCTAssertTrue(source.contains(".accessibilityLabel(\"Developer diagnostics\")"))
         XCTAssertFalse(source.contains("100%に戻す"))
         XCTAssertFalse(source.contains("Toggle(\"ON\""))

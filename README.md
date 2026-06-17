@@ -1,8 +1,8 @@
-# Hazakura Boost
+# Hazakura Amp!
 
 > Macの小さい音を、メニューバーからすぐ持ち上げる。
 
-**Hazakura Boost**（リポジトリ名: `hazakura-volume-booster`）は、Macのシステム音量をメニューバーから一時的にブーストする常駐型ユーティリティアプリです。YouTubeや配信、講義動画、古い音源など「最大音量でも小さすぎる」コンテンツを、外部スピーカーやモニターの物理ボリュームを触らずに聞こえやすくします。
+**Hazakura Amp!**（リポジトリ名: `hazakura-amp`）は、Macのシステム音量をメニューバーから一時的にブーストする常駐型ユーティリティアプリです。YouTubeや配信、講義動画、古い音源など「最大音量でも小さすぎる」コンテンツを、外部スピーカーやモニターの物理ボリュームを触らずに聞こえやすくします。
 
 ドライバ非依存・アプリ別ミキサー非対応・EQ非対応という割り切りで、Mac全体の音を「**少し大きくする**」ことだけに集中します。
 
@@ -10,7 +10,7 @@
 
 **フェーズ: v0.2 daily-use quality candidate / Core Audio PoC**
 
-- ✅ 企画書 [`hazakura-volume-booster企画書.md`](./hazakura-volume-booster企画書.md)
+- ✅ 企画書 [`hazakura-amp企画書.md`](./hazakura-amp企画書.md)
 - ✅ 準備ドキュメント（本リポジトリの `docs/`）
 - ✅ **Core Audio Tap + ScreenCaptureKit PoC**（[`spike/core-audio-tap`](./spike/core-audio-tap)）
 - ✅ メニューバーUI / 0%〜400%スライダー / 右クリック終了 / Dev診断表示
@@ -23,7 +23,7 @@
 
 | ドキュメント | 内容 |
 |---|---|
-| [`hazakura-volume-booster企画書.md`](./hazakura-volume-booster企画書.md) | プロダクト企画の一次資料。コンセプト・想定ユーザー・MVP機能・やらないこと |
+| [`hazakura-amp企画書.md`](./hazakura-amp企画書.md) | プロダクト企画の一次資料。コンセプト・想定ユーザー・MVP機能・やらないこと |
 | [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | 技術アーキ・コンポーネント構成・データフロー・技術選定理由 |
 | [`docs/ROADMAP.md`](./docs/ROADMAP.md) | v0.1〜v0.4+ のマイルストーンとDoneの定義 |
 | [`docs/TECH_SPIKE.md`](./docs/TECH_SPIKE.md) | **Core Audio Tap PoC**。v0.1 着手前に通す技術検証の Done 条件 |
@@ -71,7 +71,7 @@ xcodebuild \
 起動:
 
 ```bash
-open spike/core-audio-tap/build/Build/Products/Debug/CoreAudioTapPoC.app
+open "spike/core-audio-tap/build/Build/Products/Debug/Hazakura Amp!.app"
 ```
 
 普段の開発確認は `Debug` / Apple Development 署名、GitHub Release 前の確認は `./scripts/build_release_candidate.sh` で作る `Release` / Developer ID 署名の app を使います。公証と staple は外部配布直前の別工程です。
@@ -102,10 +102,12 @@ open spike/core-audio-tap/build/Build/Products/Debug/CoreAudioTapPoC.app
 
 | 名称 | 用途 |
 |---|---|
-| **Hazakura Boost** | プロダクト名・UI表示・App Store表記・README・リリースノート |
-| **hazakura-volume-booster** | リポジトリ名・Xcodeプロジェクト名・Bundle Identifierの一部候補 |
+| **Hazakura Amp!** | プロダクト名・UI表示・App Store表記・README・リリースノート |
+| **hazakura-amp** | GitHubリポジトリ名 |
+| **CoreAudioTapPoC** | v0.2 PoC のターゲット名・スキーム名・内部ソースフォルダ名。広いリネームを避けるため現時点では維持 |
+| **dev.keisetsu.hazakura-volume-booster.poc** | v0.2 PoC の Bundle Identifier。権限・ログ識別子を変えないため現時点では維持 |
 
-リポジトリ名から変更する予定が現時点で無いため、**両者は同じものを指す**として扱います。
+GitHub リポジトリ名とプロダクト名は `Hazakura Amp!` に合わせる。PoC のターゲット名・スキーム名・Bundle Identifier は macOS 権限・ログ・tap識別子への影響があるため、変更する場合は別スライスで扱う。
 
 ## 次のアクション
 
@@ -116,4 +118,4 @@ open spike/core-audio-tap/build/Build/Products/Debug/CoreAudioTapPoC.app
 
 ## ライセンス
 
-Hazakura Boost はプロプライエタリソフトウェアです。詳細は [`LICENSE`](./LICENSE) を参照してください。
+Hazakura Amp! はプロプライエタリソフトウェアです。詳細は [`LICENSE`](./LICENSE) を参照してください。

@@ -384,7 +384,7 @@ final class PoCAudioEngine: ObservableObject {
             "[\(entry.level.label)] \(entry.message)"
         }.joined(separator: "\n")
         return """
-        Hazakura Boost diagnostics
+        Hazakura Amp! diagnostics
         appVersion: \(appVersion)
         build: \(build)
         signingKind: \(signingKind)

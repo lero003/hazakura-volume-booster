@@ -2,7 +2,7 @@
 
 > 関連: [ARCHITECTURE §Audio Engine層](./ARCHITECTURE.md) / [RISKS §1 🔴 Core Audio Tap の実現性](./RISKS.md) / [ROADMAP §v0.1 MVP](./ROADMAP.md#v01-mvp) / [PERMISSIONS §Info.plist](./PERMISSIONS.md)
 
-このドキュメントは、**Hazakura Boost v0.1 の実装に着手する前に必ず通す技術検証（PoC）**のゴール・Done 条件・撤退ラインを定義する。
+このドキュメントは、**Hazakura Amp! v0.1 の実装に着手する前に必ず通す技術検証（PoC）**のゴール・Done 条件・撤退ラインを定義する。
 
 ## 現在の判定（2026-06-17）
 

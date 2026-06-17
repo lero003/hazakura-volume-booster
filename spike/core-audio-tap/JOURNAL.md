@@ -1,6 +1,6 @@
-# Hazakura Boost PoC 作業記録 (JOURNAL)
+# Hazakura Amp! PoC 作業記録 (JOURNAL)
 
-> 親: [`hazakura-volume-booster/`](../)  
+> 親: [`hazakura-amp/`](../)
 > 関連: [`README.md`](./README.md) / [`docs/TECH_SPIKE.md`](../../docs/TECH_SPIKE.md) / [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) / [`docs/RISKS.md`](../../docs/RISKS.md) / [`docs/PERMISSIONS.md`](../../docs/PERMISSIONS.md)
 
 ## TL;DR (2026-06-17 時点)
@@ -31,7 +31,7 @@
 
 | パス | 状態 |
 |---|---|
-| `hazakura-volume-booster企画書.md` | ✅ 一次資料（未改変） |
+| `hazakura-amp企画書.md` | ✅ 一次資料（未改変） |
 | `README.md` | ✅ |
 | `docs/ARCHITECTURE.md` | ✅ ちかちゃんレビュー反映済み |
 | `docs/ROADMAP.md` | ✅ 〃 |

@@ -143,7 +143,7 @@ final class RightClickableStatusButton: NSObject {
         popover.behavior = .transient
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "speaker.wave.2.fill", accessibilityDescription: "Hazakura Boost")
+            button.image = NSImage(systemSymbolName: "speaker.wave.2.fill", accessibilityDescription: "Hazakura Amp!")
             button.imagePosition = .imageOnly
             button.target = self
             button.action = #selector(handleStatusButtonAction(_:))
