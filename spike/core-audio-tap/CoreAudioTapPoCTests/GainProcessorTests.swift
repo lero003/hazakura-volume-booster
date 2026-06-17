@@ -296,7 +296,7 @@ final class GainProcessorTests: XCTestCase {
     }
 
     @MainActor
-    func testSleepPreparationPreservesConfiguredGainButOutputsNeutral() async throws {
+    func testSleepPreparationStopsBackendAfterForcingNeutralAndPreservesConfiguredGain() async throws {
         let backend = FakeAudioProcessingBackend()
         let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
 
@@ -304,30 +304,68 @@ final class GainProcessorTests: XCTestCase {
         await engine.startAsync()
         engine.prepareForSleep()
 
-        XCTAssertTrue(engine.isRunning)
+        XCTAssertFalse(engine.isRunning)
+        XCTAssertTrue(backend.didStop)
         XCTAssertEqual(engine.configuredGain, 2.5, accuracy: 0.001)
-        XCTAssertEqual(backend.appliedGains.last, 1.0)
+        XCTAssertEqual(backend.appliedGains.suffix(2), [2.5, 1.0])
+        XCTAssertEqual(engine.statusText, "sleeping")
+    }
 
-        engine.restoreAfterWake()
+    @MainActor
+    func testWakeRestoreRestartsBackendWithSavedGain() async throws {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(
+            audioBackend: backend,
+            monitorsOutputDeviceChanges: false,
+            wakeRestoreDelayNanoseconds: 0
+        )
 
+        engine.configuredGain = 2.5
+        await engine.startAsync()
+        engine.prepareForSleep()
+        await engine.restoreAfterWakeAsync()
+
+        XCTAssertTrue(engine.isRunning)
+        XCTAssertEqual(backend.startCount, 2)
+        XCTAssertEqual(backend.stopCount, 1)
         XCTAssertEqual(engine.configuredGain, 2.5, accuracy: 0.001)
         XCTAssertEqual(backend.appliedGains.last, 2.5)
+        XCTAssertEqual(engine.statusText, "running")
+    }
+
+    @MainActor
+    func testWakeRestoreDoesNotStartWhenNoSleepSnapshotExists() async {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(
+            audioBackend: backend,
+            monitorsOutputDeviceChanges: false,
+            wakeRestoreDelayNanoseconds: 0
+        )
+
+        await engine.restoreAfterWakeAsync()
+
+        XCTAssertFalse(engine.isRunning)
+        XCTAssertEqual(backend.startCount, 0)
     }
 }
 
 private final class FakeAudioProcessingBackend: AudioProcessingBackend, @unchecked Sendable {
     private(set) var didStart = false
     private(set) var didStop = false
+    private(set) var startCount = 0
+    private(set) var stopCount = 0
     private(set) var appliedGains: [Float] = []
 
     var diagnostics = AudioBackendDiagnostics()
 
     func start() async throws {
         didStart = true
+        startCount += 1
     }
 
     func stop() {
         didStop = true
+        stopCount += 1
     }
 
     func setLinearGain(_ linearGain: Float) {

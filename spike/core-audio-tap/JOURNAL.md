@@ -322,3 +322,7 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
   - Dev 診断に `OK` / `Watch` / `Warning` の health 判定を追加
   - 5分再生で underrun 30 / render 15,809 / dropped 0 相当は Watch として扱うテストを追加
   - 単体テスト 27/27 pass
+- **2026-06-17（sleep wake recovery slice）**:
+  - スリープ前は `gain=1.0` 適用後に ScreenCaptureKit / AVAudioEngine / process tap を停止するよう変更
+  - 復帰後は保存済み gain / ON-OFF 設定を使って fresh start する
+  - 単体テスト 29/29 pass

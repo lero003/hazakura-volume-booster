@@ -111,6 +111,18 @@ struct ContentView: View {
 
     private var statusText: String {
         if !engine.isRunning {
+            switch engine.statusText {
+            case "sleeping":
+                return "sleeping"
+            case "waking":
+                return "waking"
+            case "restart required":
+                return "Restart required"
+            case "error":
+                return "error"
+            default:
+                break
+            }
             return "Boost を開始してください"
         }
         if !engine.isEnabled {

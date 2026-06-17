@@ -123,21 +123,25 @@ final class PoCAudioEngine: ObservableObject {
     private let backendFailureRelay: BackendFailureRelay
     private let outputDeviceMonitor = DefaultOutputDeviceMonitor()
     private let monitorsOutputDeviceChanges: Bool
+    private let wakeRestoreDelayNanoseconds: UInt64
     private var diagnosticTimer: Timer?
     private var startTask: Task<Void, Never>?
+    private var wakeRestoreTask: Task<Void, Never>?
     private var hasReportedMissingCaptureBuffers = false
     private var hasReportedMissingRenderCalls = false
-    private var sleepSnapshot: (configuredGain: Double, isEnabled: Bool)?
+    private var sleepSnapshot: (configuredGain: Double, isEnabled: Bool, wasRunning: Bool)?
 
     init(
         diagnosticLog: DiagnosticLogStore = DiagnosticLogStore(),
         audioBackend: (any AudioProcessingBackend)? = nil,
-        monitorsOutputDeviceChanges: Bool = true
+        monitorsOutputDeviceChanges: Bool = true,
+        wakeRestoreDelayNanoseconds: UInt64 = 1_000_000_000
     ) {
         let relay = BackendFailureRelay()
         self.diagnosticLog = diagnosticLog
         self.backendFailureRelay = relay
         self.monitorsOutputDeviceChanges = monitorsOutputDeviceChanges
+        self.wakeRestoreDelayNanoseconds = wakeRestoreDelayNanoseconds
         self.audioBackend = audioBackend ?? BoostAudioPipeline(
             diagnosticLog: diagnosticLog,
             onBackendFailure: { [relay] message in
@@ -161,6 +165,9 @@ final class PoCAudioEngine: ObservableObject {
     // MARK: - Public API
 
     func start() {
+        wakeRestoreTask?.cancel()
+        wakeRestoreTask = nil
+        sleepSnapshot = nil
         startTask?.cancel()
         startTask = Task { [weak self] in
             await self?.startAsync()
@@ -206,6 +213,9 @@ final class PoCAudioEngine: ObservableObject {
         diagnosticLog.record(.info, "Stopping engine")
         startTask?.cancel()
         startTask = nil
+        wakeRestoreTask?.cancel()
+        wakeRestoreTask = nil
+        sleepSnapshot = nil
         diagnosticTimer?.invalidate()
         diagnosticTimer = nil
         outputDeviceMonitor.stop()
@@ -233,6 +243,9 @@ final class PoCAudioEngine: ObservableObject {
         diagnosticLog.record(.info, "App termination requested; forcing neutral gain before shutdown")
         startTask?.cancel()
         startTask = nil
+        wakeRestoreTask?.cancel()
+        wakeRestoreTask = nil
+        sleepSnapshot = nil
         diagnosticTimer?.invalidate()
         diagnosticTimer = nil
         outputDeviceMonitor.stop()
@@ -250,22 +263,75 @@ final class PoCAudioEngine: ObservableObject {
 
     func prepareForSleep() {
         guard isRunning else { return }
-        sleepSnapshot = (configuredGain: configuredGain, isEnabled: isEnabled)
+        sleepSnapshot = (configuredGain: configuredGain, isEnabled: isEnabled, wasRunning: true)
+        startTask?.cancel()
+        startTask = nil
+        wakeRestoreTask?.cancel()
+        wakeRestoreTask = nil
+        diagnosticTimer?.invalidate()
+        diagnosticTimer = nil
+        outputDeviceMonitor.stop()
         audioBackend.setLinearGain(1.0)
+        audioBackend.stop()
+        isRunning = false
+        resetDiagnostics()
         statusText = "sleeping"
-        diagnosticLog.record(.info, "Sleep requested; output gain forced to 100%")
+        diagnosticLog.record(.info, "Sleep requested; output gain forced to 100% and audio pipeline stopped")
     }
 
     func restoreAfterWake() {
-        guard isRunning else { return }
-        if let sleepSnapshot {
-            configuredGain = sleepSnapshot.configuredGain
-            isEnabled = sleepSnapshot.isEnabled
+        wakeRestoreTask?.cancel()
+        wakeRestoreTask = Task { [weak self] in
+            guard let self else { return }
+            let delay = self.wakeRestoreDelayNanoseconds
+            if delay > 0 {
+                do {
+                    try await Task.sleep(nanoseconds: delay)
+                } catch {
+                    return
+                }
+            }
+            await self.restoreAfterWakeAsync()
+        }
+    }
+
+    func restoreAfterWakeAsync() async {
+        guard let snapshot = sleepSnapshot else {
+            diagnosticLog.record(.info, "Wake detected with no active sleep snapshot")
+            return
         }
         sleepSnapshot = nil
-        applyEffectiveGain()
-        statusText = "running"
-        diagnosticLog.record(.info, "Wake detected; restored effective gain")
+        configuredGain = snapshot.configuredGain
+        isEnabled = snapshot.isEnabled
+        guard snapshot.wasRunning else {
+            statusText = "stopped"
+            diagnosticLog.record(.info, "Wake detected; boost was not running before sleep")
+            return
+        }
+
+        do {
+            statusText = "waking"
+            diagnosticLog.record(.info, "Wake detected; restarting ScreenCaptureKit audio pipeline")
+            try await audioBackend.start()
+
+            isRunning = true
+            applyEffectiveGain()
+
+            lastError = nil
+            statusText = "running"
+            hasReportedMissingCaptureBuffers = false
+            hasReportedMissingRenderCalls = false
+            startDiagnosticTimer()
+            startOutputDeviceMonitor()
+            diagnosticLog.record(.info, "Wake restore finished")
+        } catch {
+            let errMsg = error.localizedDescription
+            log.error("wake restore failed: \(errMsg, privacy: .public)")
+            diagnosticLog.record(.error, "Wake restore failed: \(errMsg)")
+            lastError = errMsg
+            statusText = "restart required"
+            cleanupAfterFailure()
+        }
     }
 
     /// 100%（素通し）に戻す。configuredGain を 1.0 にし、isEnabled を ON に戻す。
@@ -324,8 +390,7 @@ final class PoCAudioEngine: ObservableObject {
         audioBackend.setLinearGain(1.0)
         audioBackend.stop()
         isRunning = false
-        hasReportedMissingCaptureBuffers = false
-        hasReportedMissingRenderCalls = false
+        resetDiagnostics()
         diagnosticLog.record(.info, "Cleanup after failure finished")
     }
 
@@ -383,6 +448,18 @@ final class PoCAudioEngine: ObservableObject {
             droppedFrameCount: droppedFrameCount,
             latestBufferFrameCount: latestBufferFrameCount
         )
+    }
+
+    private func resetDiagnostics() {
+        captureBufferCount = 0
+        renderCallCount = 0
+        lastObservedGain = 0.0
+        availableFrames = 0
+        underrunCount = 0
+        droppedFrameCount = 0
+        latestBufferFrameCount = 0
+        hasReportedMissingCaptureBuffers = false
+        hasReportedMissingRenderCalls = false
     }
 
     fileprivate func handleRecoverableBackendFailure(_ message: String) {
