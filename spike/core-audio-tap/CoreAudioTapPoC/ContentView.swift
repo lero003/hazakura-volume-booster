@@ -118,6 +118,8 @@ struct ContentView: View {
                 return "waking"
             case "restart required":
                 return "Restart required"
+            case "manual start required":
+                return "Start required after wake"
             case "error":
                 return "error"
             default:

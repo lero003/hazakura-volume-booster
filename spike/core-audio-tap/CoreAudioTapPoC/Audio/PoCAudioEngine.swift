@@ -342,9 +342,9 @@ final class PoCAudioEngine: ObservableObject {
                 cleanupAfterFailure()
 
                 guard attemptIndex < wakeRestoreRetryDelaysNanoseconds.count else {
-                    lastError = errMsg
-                    statusText = "restart required"
-                    diagnosticLog.record(.error, "Wake restore failed after \(attemptIndex + 1) attempts: \(errMsg)")
+                    lastError = nil
+                    statusText = "manual start required"
+                    diagnosticLog.record(.warning, "Wake restore paused after \(attemptIndex + 1) attempts; manual Start required: \(errMsg)")
                     return
                 }
 

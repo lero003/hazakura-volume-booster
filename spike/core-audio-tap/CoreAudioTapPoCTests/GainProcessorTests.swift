@@ -360,6 +360,41 @@ final class GainProcessorTests: XCTestCase {
     }
 
     @MainActor
+    func testWakeRestoreFallsBackToManualStartWhenRetriesFail() async throws {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(
+            audioBackend: backend,
+            monitorsOutputDeviceChanges: false,
+            wakeRestoreDelayNanoseconds: 0,
+            wakeRestoreRetryDelaysNanoseconds: [0, 0]
+        )
+
+        engine.configuredGain = 2.5
+        await engine.startAsync()
+        engine.prepareForSleep()
+        backend.queuedStartErrors = [
+            FakeAudioProcessingBackend.makeError("wake start failed 1"),
+            FakeAudioProcessingBackend.makeError("wake start failed 2"),
+            FakeAudioProcessingBackend.makeError("wake start failed 3"),
+        ]
+
+        await engine.restoreAfterWakeAsync()
+
+        XCTAssertFalse(engine.isRunning)
+        XCTAssertNil(engine.lastError)
+        XCTAssertEqual(engine.statusText, "manual start required")
+        XCTAssertEqual(engine.configuredGain, 2.5, accuracy: 0.001)
+        XCTAssertEqual(backend.startCount, 4)
+        XCTAssertGreaterThanOrEqual(backend.stopCount, 4)
+
+        await engine.startAsync()
+
+        XCTAssertTrue(engine.isRunning)
+        XCTAssertEqual(engine.statusText, "running")
+        XCTAssertEqual(backend.appliedGains.last, 2.5)
+    }
+
+    @MainActor
     func testWakeRestoreDoesNotStartWhenNoSleepSnapshotExists() async {
         let backend = FakeAudioProcessingBackend()
         let engine = PoCAudioEngine(
