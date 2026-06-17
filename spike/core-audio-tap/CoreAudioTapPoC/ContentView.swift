@@ -56,7 +56,7 @@ struct BoostStatusPresentation: Equatable {
         case PoCAudioEngineStatus.permissionDenied.rawValue:
             return BoostStatusPresentation(
                 headline: "System audio access is not allowed",
-                detail: "Allow CoreAudioTapPoC in System Settings, then press Start again.",
+                detail: "Allow CoreAudioTapPoC in System Settings > Privacy & Security, then press Start again.",
                 severity: .warning,
                 showsErrorBanner: true
             )

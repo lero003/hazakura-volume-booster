@@ -50,6 +50,7 @@ targets:
         NSHumanReadableCopyright: "Hazakura Boost PoC — Core Audio Tap verification"
         CFBundleShortVersionString: "0.0.1"
         CFBundleVersion: "1"
+        HazakuraSigningKind: "$(CODE_SIGN_IDENTITY)"
     entitlements:
       path: CoreAudioTapPoC/Resources/CoreAudioTapPoC.entitlements
     settings:

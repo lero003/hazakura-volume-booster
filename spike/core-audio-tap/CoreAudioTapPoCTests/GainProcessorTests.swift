@@ -134,6 +134,8 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertEqual(permission.headline, "System audio access is not allowed")
         XCTAssertEqual(permission.severity, .warning)
         XCTAssertTrue(permission.detail.contains("System Settings"))
+        XCTAssertTrue(permission.detail.contains("Privacy & Security"))
+        XCTAssertTrue(permission.detail.contains("press Start again"))
 
         let restart = BoostStatusPresentation.make(
             statusText: "restart required",
@@ -204,7 +206,9 @@ final class GainProcessorTests: XCTestCase {
 
         XCTAssertTrue(snapshot.contains("appVersion:"))
         XCTAssertTrue(snapshot.contains("build:"))
+        XCTAssertTrue(snapshot.contains("signingKind:"))
         XCTAssertTrue(snapshot.contains("status: running"))
+        XCTAssertTrue(snapshot.contains("manualStartRequired: false"))
         XCTAssertTrue(snapshot.contains("captureBufferCount: 8426"))
         XCTAssertEqual(engine.captureBufferCount, 0)
         XCTAssertTrue(snapshot.contains("health:"))

@@ -378,6 +378,8 @@ final class PoCAudioEngine: ObservableObject {
         let info = Bundle.main.infoDictionary ?? [:]
         let appVersion = info["CFBundleShortVersionString"] as? String ?? "unknown"
         let build = info["CFBundleVersion"] as? String ?? "unknown"
+        let signingKind = info["HazakuraSigningKind"] as? String ?? "unknown"
+        let manualStartRequired = statusText == PoCAudioEngineStatus.manualStartRequired.rawValue
         let entries = diagnosticLog.entries.suffix(20).map { entry in
             "[\(entry.level.label)] \(entry.message)"
         }.joined(separator: "\n")
@@ -385,7 +387,9 @@ final class PoCAudioEngine: ObservableObject {
         Hazakura Boost diagnostics
         appVersion: \(appVersion)
         build: \(build)
+        signingKind: \(signingKind)
         status: \(statusText)
+        manualStartRequired: \(manualStartRequired)
         running: \(isRunning)
         configuredGain: \(String(format: "%.2f", configuredGain))x (\(percent)%)
         effectiveGain: \(String(format: "%.2f", effectiveGain))x

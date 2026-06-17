@@ -276,7 +276,7 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
 [ ] スリープ前にゲインが 1.0 へ戻る
 [ ] スリープから復帰して保存値へ復元する
 [ ] 強制終了後に `./scripts/verify_shutdown_safety.sh` が OK になる
-[ ] 権限拒否でクラッシュしない
+[ ] 権限拒否でクラッシュせず、System Settings > Privacy & Security と Start retry が案内される
 [ ] マイク権限ダイアログが出ない
 [ ] レイテンシが 200ms 未満の体感
 ```
@@ -347,3 +347,6 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
 - **2026-06-17（shutdown verification slice）**:
   - `scripts/verify_shutdown_safety.sh` を追加
   - 通常終了または強制終了後に `CoreAudioTapPoC` プロセスと `hbb-poc` audio residue が残っていないことを確認できるようにした
+- **2026-06-17（permission diagnostics slice）**:
+  - 権限拒否時の表示に System Settings > Privacy & Security と Start retry の次アクションを含める
+  - 診断コピーに `signingKind` と `manualStartRequired` を追加
