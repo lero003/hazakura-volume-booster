@@ -389,9 +389,9 @@ final class PoCAudioEngine: ObservableObject {
     }
 
     func diagnosticSnapshotText() -> String {
-        refreshDiagnosticsFromBackend()
+        let diagnostics = audioBackend.diagnostics
         let percent = Int((configuredGain * 100).rounded())
-        let health = backendHealth
+        let health = diagnostics.healthAssessment
         let info = Bundle.main.infoDictionary ?? [:]
         let appVersion = info["CFBundleShortVersionString"] as? String ?? "unknown"
         let build = info["CFBundleVersion"] as? String ?? "unknown"
@@ -407,13 +407,13 @@ final class PoCAudioEngine: ObservableObject {
         enabled: \(isEnabled)
         configuredGain: \(String(format: "%.2f", configuredGain))x (\(percent)%)
         effectiveGain: \(String(format: "%.2f", effectiveGain))x
-        captureBufferCount: \(captureBufferCount)
-        renderCallCount: \(renderCallCount)
-        outputGain: \(String(format: "%.2f", lastObservedGain))x
-        availableFrames: \(availableFrames)
-        underrunCount: \(underrunCount)
-        droppedFrameCount: \(droppedFrameCount)
-        latestBufferFrameCount: \(latestBufferFrameCount)
+        captureBufferCount: \(diagnostics.captureBufferCount)
+        renderCallCount: \(diagnostics.renderCallCount)
+        outputGain: \(String(format: "%.2f", diagnostics.lastObservedGain))x
+        availableFrames: \(diagnostics.availableFrames)
+        underrunCount: \(diagnostics.underrunCount)
+        droppedFrameCount: \(diagnostics.droppedFrameCount)
+        latestBufferFrameCount: \(diagnostics.latestBufferFrameCount)
         healthLevel: \(health.level.rawValue)
         health: \(health.summary)
         healthRecommendation: \(health.recommendation)
@@ -520,17 +520,6 @@ final class PoCAudioEngine: ObservableObject {
             droppedFrameCount: droppedFrameCount,
             latestBufferFrameCount: latestBufferFrameCount
         )
-    }
-
-    private func refreshDiagnosticsFromBackend() {
-        let diagnostics = audioBackend.diagnostics
-        captureBufferCount = diagnostics.captureBufferCount
-        renderCallCount = diagnostics.renderCallCount
-        lastObservedGain = diagnostics.lastObservedGain
-        availableFrames = diagnostics.availableFrames
-        underrunCount = diagnostics.underrunCount
-        droppedFrameCount = diagnostics.droppedFrameCount
-        latestBufferFrameCount = diagnostics.latestBufferFrameCount
     }
 
     private func resetDiagnostics() {

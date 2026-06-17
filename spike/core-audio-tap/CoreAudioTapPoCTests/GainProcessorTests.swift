@@ -203,6 +203,8 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(snapshot.contains("appVersion:"))
         XCTAssertTrue(snapshot.contains("build:"))
         XCTAssertTrue(snapshot.contains("status: running"))
+        XCTAssertTrue(snapshot.contains("captureBufferCount: 8426"))
+        XCTAssertEqual(engine.captureBufferCount, 0)
         XCTAssertTrue(snapshot.contains("health:"))
         XCTAssertTrue(snapshot.contains("healthLevel:"))
         XCTAssertTrue(snapshot.contains("recentEvents:"))
