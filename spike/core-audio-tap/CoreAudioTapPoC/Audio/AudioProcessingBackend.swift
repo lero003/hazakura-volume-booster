@@ -5,6 +5,19 @@
 
 import Foundation
 
+enum AudioBackendHealthLevel: String, Equatable {
+    case ok = "OK"
+    case watch = "Watch"
+    case warning = "Warning"
+}
+
+struct AudioBackendHealthAssessment: Equatable {
+    let level: AudioBackendHealthLevel
+    let underrunRate: Double
+    let summary: String
+    let recommendation: String
+}
+
 struct AudioBackendDiagnostics: Equatable {
     var captureBufferCount: UInt64 = 0
     var renderCallCount: UInt64 = 0
@@ -13,6 +26,61 @@ struct AudioBackendDiagnostics: Equatable {
     var underrunCount: UInt64 = 0
     var droppedFrameCount: UInt64 = 0
     var latestBufferFrameCount: Int = 0
+}
+
+extension AudioBackendDiagnostics {
+    var healthAssessment: AudioBackendHealthAssessment {
+        let rate: Double
+        if renderCallCount == 0 {
+            rate = 0.0
+        } else {
+            rate = Double(underrunCount) / Double(renderCallCount)
+        }
+        let percent = String(format: "%.2f%%", rate * 100)
+
+        if droppedFrameCount > 0 {
+            return AudioBackendHealthAssessment(
+                level: .warning,
+                underrunRate: rate,
+                summary: "Warning: underruns \(percent), dropped \(droppedFrameCount)",
+                recommendation: "Restart boost and check output device changes if audio glitches are audible."
+            )
+        }
+
+        if renderCallCount == 0 {
+            return AudioBackendHealthAssessment(
+                level: .watch,
+                underrunRate: rate,
+                summary: "Watch: waiting for render callbacks",
+                recommendation: "Start playback and confirm render callbacks begin."
+            )
+        }
+
+        if underrunCount == 0 {
+            return AudioBackendHealthAssessment(
+                level: .ok,
+                underrunRate: rate,
+                summary: "OK: underruns 0.00%, dropped 0",
+                recommendation: "No buffer health issue detected."
+            )
+        }
+
+        if rate < 0.005 {
+            return AudioBackendHealthAssessment(
+                level: .watch,
+                underrunRate: rate,
+                summary: "Watch: underruns \(percent), dropped 0",
+                recommendation: "Continue playback; investigate only if pops or dropouts are audible."
+            )
+        }
+
+        return AudioBackendHealthAssessment(
+            level: .warning,
+            underrunRate: rate,
+            summary: "Warning: underruns \(percent), dropped 0",
+            recommendation: "Frequent underruns detected; restart boost or reduce competing audio load."
+        )
+    }
 }
 
 protocol AudioProcessingBackend: AnyObject, Sendable {

@@ -87,6 +87,7 @@ struct ContentView: View {
                     underrunCount: engine.underrunCount,
                     droppedFrameCount: engine.droppedFrameCount,
                     latestBufferFrameCount: engine.latestBufferFrameCount,
+                    health: engine.backendHealth,
                     isRunning: engine.isRunning,
                     logStore: engine.diagnosticLog,
                     diagnosticSnapshot: engine.diagnosticSnapshotText()
@@ -163,6 +164,7 @@ struct DiagnosticsView: View {
     let underrunCount: UInt64
     let droppedFrameCount: UInt64
     let latestBufferFrameCount: Int
+    let health: AudioBackendHealthAssessment
     let isRunning: Bool
 
     var body: some View {
@@ -217,6 +219,13 @@ struct DiagnosticsView: View {
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
+                HStack {
+                    Text("Health:")
+                    Spacer()
+                    Text(healthLabel)
+                        .monospacedDigit()
+                        .foregroundStyle(healthColor)
+                }
                 if isRunning && captureBufferCount == 0 {
                     Text("⚠️ ScreenCaptureKit の音声バッファがまだ届いていない")
                         .font(.caption)
@@ -231,6 +240,28 @@ struct DiagnosticsView: View {
             .font(.caption)
         }
     }
+
+    private var healthLabel: String {
+        switch health.level {
+        case .ok:
+            return "OK"
+        case .watch:
+            return String(format: "Watch %.2f%%", health.underrunRate * 100)
+        case .warning:
+            return String(format: "Warning %.2f%%", health.underrunRate * 100)
+        }
+    }
+
+    private var healthColor: Color {
+        switch health.level {
+        case .ok:
+            return .secondary
+        case .watch:
+            return .orange
+        case .warning:
+            return .red
+        }
+    }
 }
 
 /// Dev モード用の診断情報。失敗した audio 境界をアプリ内で確認する。
@@ -242,6 +273,7 @@ struct DevDiagnosticsView: View {
     let underrunCount: UInt64
     let droppedFrameCount: UInt64
     let latestBufferFrameCount: Int
+    let health: AudioBackendHealthAssessment
     let isRunning: Bool
     @ObservedObject var logStore: DiagnosticLogStore
     let diagnosticSnapshot: String
@@ -256,6 +288,7 @@ struct DevDiagnosticsView: View {
                 underrunCount: underrunCount,
                 droppedFrameCount: droppedFrameCount,
                 latestBufferFrameCount: latestBufferFrameCount,
+                health: health,
                 isRunning: isRunning
             )
 

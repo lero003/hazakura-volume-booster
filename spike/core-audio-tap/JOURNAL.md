@@ -8,7 +8,7 @@
 - 純Core Audio経路（AVAudioEngine inputNode / AudioDeviceCreateIOProcID / HALOutput AudioUnit）はいずれも v0.1 beta の active 経路としては不採用
 - 現在は **Core Audio process tap で元音を muted にし、ScreenCaptureKit audio → PCMFloatRingBuffer → AVAudioSourceNode** で加工後音を出す構成
 - ユーザー手元確認で、音量ブースト、二重再生の抑制、音質劣化の軽減は v0.1 beta として許容範囲に到達
-- `daily-use-ok` に向け、コード側では Quit / `⌘Q` / スリープ前の neutral gain、二重起動抑止、出力デバイス変更時の安全停止、Dev 診断拡張を追加済み
+- `daily-use-ok` に向け、コード側では Quit / `⌘Q` / スリープ前の neutral gain、二重起動抑止、出力デバイス変更時の安全停止、Dev 診断拡張と health 判定を追加済み
 - 計画ドキュメント（`docs/` 配下 8 本）は完成済み、レビュー反映済み
 - 残る主な確認は、強制終了後の残骸確認、スリープ復帰・出力デバイス変更の実機挙動、10分以上の連続再生、配布用署名・公証
 - 詳細は後述の「PoC 試行の歴史」「現コードの構成」「検証チェックリスト」を参照
@@ -318,3 +318,7 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
   - スリープ前 neutral / 復帰後 restored gain、出力デバイス変更時の安全停止、二重起動抑止を追加
   - Dev 診断に available frames / underrun count / dropped frames / latest buffer size と copy diagnostics を追加
   - 単体テスト 23/23 pass
+- **2026-06-17（diagnostic health slice）**:
+  - Dev 診断に `OK` / `Watch` / `Warning` の health 判定を追加
+  - 5分再生で underrun 30 / render 15,809 / dropped 0 相当は Watch として扱うテストを追加
+  - 単体テスト 27/27 pass

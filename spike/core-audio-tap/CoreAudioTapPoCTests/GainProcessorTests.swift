@@ -148,6 +148,67 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertEqual(diagnostics.latestBufferFrameCount, 480)
     }
 
+    func testAudioBackendHealthIsOKWhenPlaybackHasNoUnderrunsOrDrops() {
+        let diagnostics = AudioBackendDiagnostics(
+            captureBufferCount: 500,
+            renderCallCount: 1_000,
+            availableFrames: 1_920,
+            underrunCount: 0,
+            droppedFrameCount: 0,
+            latestBufferFrameCount: 960
+        )
+
+        let health = diagnostics.healthAssessment
+
+        XCTAssertEqual(health.level, .ok)
+        XCTAssertEqual(health.underrunRate, 0.0, accuracy: 0.0001)
+    }
+
+    func testAudioBackendHealthWatchesLowRateUnderrunsWithoutDrops() {
+        let diagnostics = AudioBackendDiagnostics(
+            captureBufferCount: 8_426,
+            renderCallCount: 15_809,
+            availableFrames: 1_920,
+            underrunCount: 30,
+            droppedFrameCount: 0,
+            latestBufferFrameCount: 960
+        )
+
+        let health = diagnostics.healthAssessment
+
+        XCTAssertEqual(health.level, .watch)
+        XCTAssertEqual(health.underrunRate, 0.0019, accuracy: 0.0001)
+        XCTAssertTrue(health.summary.contains("0.19%"))
+    }
+
+    func testAudioBackendHealthWarnsOnDroppedFrames() {
+        let diagnostics = AudioBackendDiagnostics(
+            captureBufferCount: 100,
+            renderCallCount: 100,
+            underrunCount: 0,
+            droppedFrameCount: 1
+        )
+
+        let health = diagnostics.healthAssessment
+
+        XCTAssertEqual(health.level, .warning)
+        XCTAssertTrue(health.summary.contains("dropped 1"))
+    }
+
+    func testAudioBackendHealthWarnsOnHighUnderrunRate() {
+        let diagnostics = AudioBackendDiagnostics(
+            captureBufferCount: 100,
+            renderCallCount: 1_000,
+            underrunCount: 10,
+            droppedFrameCount: 0
+        )
+
+        let health = diagnostics.healthAssessment
+
+        XCTAssertEqual(health.level, .warning)
+        XCTAssertEqual(health.underrunRate, 0.01, accuracy: 0.0001)
+    }
+
     func testSystemTapDescriptionMutesOtherProcessesButExcludesThisApp() {
         let description = SystemTap.makeTapDescription(
             deviceUID: "test-output-device",

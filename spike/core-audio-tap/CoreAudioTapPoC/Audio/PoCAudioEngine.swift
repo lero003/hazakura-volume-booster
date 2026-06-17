@@ -154,6 +154,10 @@ final class PoCAudioEngine: ObservableObject {
         return Self.sanitizedGain(configuredGain)
     }
 
+    var backendHealth: AudioBackendHealthAssessment {
+        currentDiagnostics.healthAssessment
+    }
+
     // MARK: - Public API
 
     func start() {
@@ -275,6 +279,7 @@ final class PoCAudioEngine: ObservableObject {
 
     func diagnosticSnapshotText() -> String {
         let percent = Int((configuredGain * 100).rounded())
+        let health = backendHealth
         let entries = diagnosticLog.entries.suffix(20).map { entry in
             "[\(entry.level.label)] \(entry.message)"
         }.joined(separator: "\n")
@@ -292,6 +297,8 @@ final class PoCAudioEngine: ObservableObject {
         underrunCount: \(underrunCount)
         droppedFrameCount: \(droppedFrameCount)
         latestBufferFrameCount: \(latestBufferFrameCount)
+        health: \(health.summary)
+        healthRecommendation: \(health.recommendation)
         lastError: \(lastError ?? "none")
 
         recentEvents:
@@ -364,6 +371,18 @@ final class PoCAudioEngine: ObservableObject {
         } catch {
             diagnosticLog.record(.warning, "Default output device monitor unavailable: \(error.localizedDescription)")
         }
+    }
+
+    private var currentDiagnostics: AudioBackendDiagnostics {
+        AudioBackendDiagnostics(
+            captureBufferCount: captureBufferCount,
+            renderCallCount: renderCallCount,
+            lastObservedGain: lastObservedGain,
+            availableFrames: availableFrames,
+            underrunCount: underrunCount,
+            droppedFrameCount: droppedFrameCount,
+            latestBufferFrameCount: latestBufferFrameCount
+        )
     }
 
     fileprivate func handleRecoverableBackendFailure(_ message: String) {

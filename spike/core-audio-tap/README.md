@@ -118,7 +118,7 @@ open build/Build/Products/Debug/CoreAudioTapPoC.app
 ```
 
 初回起動時に **`NSAudioCaptureUsageDescription` の OS ダイアログ**が出るので「許可」する。  
-以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / event log を確認できる。`Copy` で診断スナップショットをクリップボードへコピーできる。
+以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / health / event log を確認できる。`Copy` で診断スナップショットをクリップボードへコピーできる。
 
 ## 検証チェックリスト
 
@@ -191,7 +191,7 @@ system_profiler SPAudioDataType | grep -i 'hbb-poc'
 v0.1 beta PoC から次に進む場合:
 
 1. 強制終了・スリープ復帰・出力デバイス変更時の挙動を確認する
-2. Dev 診断の underrun / dropped frames / available frames を見ながら10分以上の連続再生を確認する
+2. Dev 診断の health / underrun / dropped frames / available frames を見ながら10分以上の連続再生を確認する。dropped frames は Warning、低頻度 underrun は Watch として聴感と合わせて判断する
 3. `docs/TECH_SPIKE.md` の結果欄を更新する
 4. この `spike/core-audio-tap/` の実装を本体プロジェクトへ昇格するか判断する
 5. Developer ID署名 / Notarized DMG / Privacy Manifest を整備する
