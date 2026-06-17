@@ -19,6 +19,7 @@ final class BoostAudioPipeline: AudioProcessingBackend, @unchecked Sendable {
     private let meter = AudioBackendMeter()
     private let diagnosticLog: DiagnosticLogStore
     private let systemOutputMuter: any SystemTapControlling
+    private let onBackendFailure: (@Sendable (String) -> Void)?
     private var engine: AVAudioEngine?
     private var sourceNode: AVAudioSourceNode?
     private var captureSource: ScreenCaptureAudioSource?
@@ -29,10 +30,12 @@ final class BoostAudioPipeline: AudioProcessingBackend, @unchecked Sendable {
 
     init(
         diagnosticLog: DiagnosticLogStore,
-        systemOutputMuter: (any SystemTapControlling)? = nil
+        systemOutputMuter: (any SystemTapControlling)? = nil,
+        onBackendFailure: (@Sendable (String) -> Void)? = nil
     ) {
         self.diagnosticLog = diagnosticLog
         self.systemOutputMuter = systemOutputMuter ?? SystemTap(diagnosticLog: diagnosticLog)
+        self.onBackendFailure = onBackendFailure
     }
 
     func start() async throws {
@@ -51,11 +54,15 @@ final class BoostAudioPipeline: AudioProcessingBackend, @unchecked Sendable {
         let audioEngine = AVAudioEngine()
         let format = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 48_000, channels: 2, interleaved: false)!
         let source = AVAudioSourceNode(format: format) { [ringBuffer, meter] isSilence, _, frameCount, outputData in
-            meter.markRenderCall()
             let framesRead = ringBuffer.read(
                 into: outputData,
                 frameCount: Int(frameCount),
                 gain: meter.outputGain
+            )
+            meter.markRenderCall(
+                requestedFrames: Int(frameCount),
+                framesRead: framesRead,
+                availableFrames: ringBuffer.availableFrames
             )
             isSilence.pointee = ObjCBool(framesRead == 0 || meter.outputGain == 0.0)
             return noErr
@@ -74,7 +81,8 @@ final class BoostAudioPipeline: AudioProcessingBackend, @unchecked Sendable {
         let capture = ScreenCaptureAudioSource(
             ringBuffer: ringBuffer,
             meter: meter,
-            diagnosticLog: diagnosticLog
+            diagnosticLog: diagnosticLog,
+            onStoppedWithError: onBackendFailure
         )
         do {
             try await capture.start()

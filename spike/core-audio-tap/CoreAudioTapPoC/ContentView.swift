@@ -2,8 +2,12 @@ import SwiftUI
 import AppKit
 
 struct ContentView: View {
-    @StateObject private var engine = PoCAudioEngine()
+    @ObservedObject private var engine: PoCAudioEngine
     @State private var isShowingDevMode = false
+
+    init(engine: PoCAudioEngine) {
+        self.engine = engine
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -79,8 +83,13 @@ struct ContentView: View {
                     captureBufferCount: engine.captureBufferCount,
                     renderCallCount: engine.renderCallCount,
                     lastObservedGain: engine.lastObservedGain,
+                    availableFrames: engine.availableFrames,
+                    underrunCount: engine.underrunCount,
+                    droppedFrameCount: engine.droppedFrameCount,
+                    latestBufferFrameCount: engine.latestBufferFrameCount,
                     isRunning: engine.isRunning,
-                    logStore: engine.diagnosticLog
+                    logStore: engine.diagnosticLog,
+                    diagnosticSnapshot: engine.diagnosticSnapshotText()
                 )
             }
 
@@ -150,6 +159,10 @@ struct DiagnosticsView: View {
     let captureBufferCount: UInt64
     let renderCallCount: UInt64
     let lastObservedGain: Float
+    let availableFrames: Int
+    let underrunCount: UInt64
+    let droppedFrameCount: UInt64
+    let latestBufferFrameCount: Int
     let isRunning: Bool
 
     var body: some View {
@@ -176,6 +189,34 @@ struct DiagnosticsView: View {
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
+                HStack {
+                    Text("Available frames:")
+                    Spacer()
+                    Text("\(availableFrames)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+                HStack {
+                    Text("Underruns:")
+                    Spacer()
+                    Text("\(underrunCount)")
+                        .monospacedDigit()
+                        .foregroundStyle(underrunCount == 0 ? Color.secondary : Color.orange)
+                }
+                HStack {
+                    Text("Dropped frames:")
+                    Spacer()
+                    Text("\(droppedFrameCount)")
+                        .monospacedDigit()
+                        .foregroundStyle(droppedFrameCount == 0 ? Color.secondary : Color.orange)
+                }
+                HStack {
+                    Text("Latest buffer:")
+                    Spacer()
+                    Text("\(latestBufferFrameCount)")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
                 if isRunning && captureBufferCount == 0 {
                     Text("⚠️ ScreenCaptureKit の音声バッファがまだ届いていない")
                         .font(.caption)
@@ -197,8 +238,13 @@ struct DevDiagnosticsView: View {
     let captureBufferCount: UInt64
     let renderCallCount: UInt64
     let lastObservedGain: Float
+    let availableFrames: Int
+    let underrunCount: UInt64
+    let droppedFrameCount: UInt64
+    let latestBufferFrameCount: Int
     let isRunning: Bool
     @ObservedObject var logStore: DiagnosticLogStore
+    let diagnosticSnapshot: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -206,6 +252,10 @@ struct DevDiagnosticsView: View {
                 captureBufferCount: captureBufferCount,
                 renderCallCount: renderCallCount,
                 lastObservedGain: lastObservedGain,
+                availableFrames: availableFrames,
+                underrunCount: underrunCount,
+                droppedFrameCount: droppedFrameCount,
+                latestBufferFrameCount: latestBufferFrameCount,
                 isRunning: isRunning
             )
 
@@ -214,6 +264,10 @@ struct DevDiagnosticsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
+                Button("Copy") {
+                    copyDiagnostics(diagnosticSnapshot)
+                }
+                .controlSize(.small)
                 Button("Clear") {
                     logStore.clear()
                 }
@@ -238,6 +292,11 @@ struct DevDiagnosticsView: View {
                 .textSelection(.enabled)
             }
         }
+    }
+
+    private func copyDiagnostics(_ text: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
     }
 }
 
@@ -274,5 +333,5 @@ private struct DiagnosticLogRow: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(engine: PoCAudioEngine())
 }

@@ -8,6 +8,12 @@ import AVFAudio
 import Foundation
 
 final class PCMFloatRingBuffer: @unchecked Sendable {
+    struct WriteResult: Equatable {
+        let droppedFrames: Int
+        let latestBufferFrameCount: Int
+        let availableFrames: Int
+    }
+
     private let lock = NSLock()
     private let capacityFrames: Int
     private let channelCount: Int
@@ -26,7 +32,8 @@ final class PCMFloatRingBuffer: @unchecked Sendable {
         lock.withLock { storedFrames }
     }
 
-    func trimToMostRecentFrames(_ frameLimit: Int) {
+    @discardableResult
+    func trimToMostRecentFrames(_ frameLimit: Int) -> Int {
         lock.withLock {
             trimToMostRecentFramesLocked(frameLimit)
         }
@@ -41,21 +48,26 @@ final class PCMFloatRingBuffer: @unchecked Sendable {
         }
     }
 
-    func writeInterleaved(_ samples: [Float], frameCount: Int, sourceChannelCount: Int) {
+    @discardableResult
+    func writeInterleaved(_ samples: [Float], frameCount: Int, sourceChannelCount: Int) -> WriteResult {
         samples.withUnsafeBufferPointer { source in
             writeInterleaved(source, frameCount: frameCount, sourceChannelCount: sourceChannelCount)
         }
     }
 
+    @discardableResult
     func writeInterleaved(
         _ samples: UnsafeBufferPointer<Float>,
         frameCount: Int,
         sourceChannelCount: Int
-    ) {
-        guard frameCount > 0, sourceChannelCount > 0, !samples.isEmpty else { return }
+    ) -> WriteResult {
+        guard frameCount > 0, sourceChannelCount > 0, !samples.isEmpty else {
+            return WriteResult(droppedFrames: 0, latestBufferFrameCount: 0, availableFrames: availableFrames)
+        }
 
-        lock.withLock {
+        return lock.withLock {
             let framesToWrite = min(frameCount, capacityFrames)
+            var droppedFrames = max(0, frameCount - capacityFrames)
             if frameCount > capacityFrames {
                 let skippedFrames = frameCount - capacityFrames
                 writeFrames(
@@ -69,6 +81,7 @@ final class PCMFloatRingBuffer: @unchecked Sendable {
                 if overflow > 0 {
                     readIndex = (readIndex + overflow) % capacityFrames
                     storedFrames -= overflow
+                    droppedFrames += overflow
                 }
                 writeFrames(
                     samples,
@@ -77,21 +90,33 @@ final class PCMFloatRingBuffer: @unchecked Sendable {
                     sourceChannelCount: sourceChannelCount
                 )
             }
+            return WriteResult(
+                droppedFrames: droppedFrames,
+                latestBufferFrameCount: frameCount,
+                availableFrames: storedFrames
+            )
         }
     }
 
-    func write(fromAudioBufferList audioBufferList: UnsafePointer<AudioBufferList>, frameCount: Int) {
-        guard frameCount > 0 else { return }
+    @discardableResult
+    func write(fromAudioBufferList audioBufferList: UnsafePointer<AudioBufferList>, frameCount: Int) -> WriteResult {
+        guard frameCount > 0 else {
+            return WriteResult(droppedFrames: 0, latestBufferFrameCount: 0, availableFrames: availableFrames)
+        }
 
         let buffers = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: audioBufferList))
-        guard !buffers.isEmpty else { return }
+        guard !buffers.isEmpty else {
+            return WriteResult(droppedFrames: 0, latestBufferFrameCount: frameCount, availableFrames: availableFrames)
+        }
 
-        lock.withLock {
+        return lock.withLock {
             let framesToWrite = min(frameCount, capacityFrames)
+            var droppedFrames = max(0, frameCount - capacityFrames)
             let overflow = max(0, storedFrames + framesToWrite - capacityFrames)
             if overflow > 0 {
                 readIndex = (readIndex + overflow) % capacityFrames
                 storedFrames -= overflow
+                droppedFrames += overflow
             }
 
             let sourceStartFrame = max(0, frameCount - framesToWrite)
@@ -108,6 +133,11 @@ final class PCMFloatRingBuffer: @unchecked Sendable {
                 writeIndex = (writeIndex + 1) % capacityFrames
                 storedFrames += 1
             }
+            return WriteResult(
+                droppedFrames: droppedFrames,
+                latestBufferFrameCount: frameCount,
+                availableFrames: storedFrames
+            )
         }
     }
 
@@ -196,13 +226,14 @@ final class PCMFloatRingBuffer: @unchecked Sendable {
         }
     }
 
-    private func trimToMostRecentFramesLocked(_ frameLimit: Int) {
+    private func trimToMostRecentFramesLocked(_ frameLimit: Int) -> Int {
         let targetFrames = max(0, min(frameLimit, capacityFrames))
-        guard storedFrames > targetFrames else { return }
+        guard storedFrames > targetFrames else { return 0 }
 
         let framesToDrop = storedFrames - targetFrames
         readIndex = (readIndex + framesToDrop) % capacityFrames
         storedFrames = targetFrames
+        return framesToDrop
     }
 
     private func sample(

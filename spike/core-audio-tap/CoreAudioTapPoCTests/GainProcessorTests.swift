@@ -89,7 +89,7 @@ final class GainProcessorTests: XCTestCase {
     @MainActor
     func testStartAppliesConfiguredGainAfterEngineBecomesRunning() async throws {
         let backend = FakeAudioProcessingBackend()
-        let engine = PoCAudioEngine(audioBackend: backend)
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
 
         engine.configuredGain = 2.0
         await engine.startAsync()
@@ -102,7 +102,7 @@ final class GainProcessorTests: XCTestCase {
     @MainActor
     func testStopResetsBackendGainAndStops() async throws {
         let backend = FakeAudioProcessingBackend()
-        let engine = PoCAudioEngine(audioBackend: backend)
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
 
         engine.configuredGain = 3.0
         await engine.startAsync()
@@ -116,7 +116,7 @@ final class GainProcessorTests: XCTestCase {
     @MainActor
     func testEffectiveGainDoesNotDropBelowNeutral() async {
         let backend = FakeAudioProcessingBackend()
-        let engine = PoCAudioEngine(audioBackend: backend)
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
 
         engine.configuredGain = 0.25
         await engine.startAsync()
@@ -131,6 +131,21 @@ final class GainProcessorTests: XCTestCase {
 
         XCTAssertEqual(meter.outputGain, 4.0, accuracy: 0.001)
         XCTAssertEqual(meter.diagnostics.lastObservedGain, 4.0, accuracy: 0.001)
+    }
+
+    func testAudioBackendMeterReportsBufferHealthDiagnostics() {
+        let meter = AudioBackendMeter()
+
+        meter.markCaptureBuffer(frameCount: 480, droppedFrames: 3, availableFrames: 320)
+        meter.markRenderCall(requestedFrames: 512, framesRead: 128, availableFrames: 0)
+
+        let diagnostics = meter.diagnostics
+        XCTAssertEqual(diagnostics.captureBufferCount, 1)
+        XCTAssertEqual(diagnostics.renderCallCount, 1)
+        XCTAssertEqual(diagnostics.availableFrames, 0)
+        XCTAssertEqual(diagnostics.underrunCount, 1)
+        XCTAssertEqual(diagnostics.droppedFrameCount, 3)
+        XCTAssertEqual(diagnostics.latestBufferFrameCount, 480)
     }
 
     func testSystemTapDescriptionMutesOtherProcessesButExcludesThisApp() {
@@ -161,12 +176,15 @@ final class GainProcessorTests: XCTestCase {
     func testPCMFloatRingBufferDropsOldestFramesWhenCapacityIsExceeded() {
         let buffer = PCMFloatRingBuffer(capacityFrames: 2, channelCount: 2)
 
-        buffer.writeInterleaved(
+        let result = buffer.writeInterleaved(
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
             frameCount: 3,
             sourceChannelCount: 2
         )
 
+        XCTAssertEqual(result.droppedFrames, 1)
+        XCTAssertEqual(result.latestBufferFrameCount, 3)
+        XCTAssertEqual(result.availableFrames, 2)
         XCTAssertEqual(buffer.availableFrames, 2)
         XCTAssertEqual(buffer.readInterleaved(frameCount: 2, outputChannelCount: 2), [0.3, 0.4, 0.5, 0.6])
     }
@@ -180,10 +198,59 @@ final class GainProcessorTests: XCTestCase {
             sourceChannelCount: 2
         )
 
-        buffer.trimToMostRecentFrames(2)
+        let droppedFrames = buffer.trimToMostRecentFrames(2)
 
+        XCTAssertEqual(droppedFrames, 2)
         XCTAssertEqual(buffer.availableFrames, 2)
         XCTAssertEqual(buffer.readInterleaved(frameCount: 2, outputChannelCount: 2), [0.5, 0.6, 0.7, 0.8])
+    }
+
+    @MainActor
+    func testConfiguredGainSanitizesInvalidValues() {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+
+        engine.configuredGain = .nan
+        XCTAssertEqual(engine.configuredGain, 1.0, accuracy: 0.001)
+
+        engine.configuredGain = 0.25
+        XCTAssertEqual(engine.configuredGain, 1.0, accuracy: 0.001)
+
+        engine.configuredGain = 9.0
+        XCTAssertEqual(engine.configuredGain, 4.0, accuracy: 0.001)
+    }
+
+    @MainActor
+    func testShutdownForAppTerminationForcesNeutralBeforeStop() async throws {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+
+        engine.configuredGain = 3.0
+        await engine.startAsync()
+        engine.shutdownForAppTermination()
+
+        XCTAssertTrue(backend.didStop)
+        XCTAssertEqual(backend.appliedGains.suffix(2), [3.0, 1.0])
+        XCTAssertFalse(engine.isRunning)
+    }
+
+    @MainActor
+    func testSleepPreparationPreservesConfiguredGainButOutputsNeutral() async throws {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+
+        engine.configuredGain = 2.5
+        await engine.startAsync()
+        engine.prepareForSleep()
+
+        XCTAssertTrue(engine.isRunning)
+        XCTAssertEqual(engine.configuredGain, 2.5, accuracy: 0.001)
+        XCTAssertEqual(backend.appliedGains.last, 1.0)
+
+        engine.restoreAfterWake()
+
+        XCTAssertEqual(engine.configuredGain, 2.5, accuracy: 0.001)
+        XCTAssertEqual(backend.appliedGains.last, 2.5)
     }
 }
 

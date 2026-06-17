@@ -12,6 +12,7 @@ final class ScreenCaptureAudioSource: NSObject, SCStreamOutput, SCStreamDelegate
     private let ringBuffer: PCMFloatRingBuffer
     private let meter: AudioBackendMeter
     private let diagnosticLog: DiagnosticLogStore
+    private let onStoppedWithError: (@Sendable (String) -> Void)?
     private let sampleQueue = DispatchQueue(label: "dev.keisetsu.hazakura-volume-booster.poc.screen-audio")
     private var stream: SCStream?
     private var hasReportedUnsupportedFormat = false
@@ -19,11 +20,13 @@ final class ScreenCaptureAudioSource: NSObject, SCStreamOutput, SCStreamDelegate
     init(
         ringBuffer: PCMFloatRingBuffer,
         meter: AudioBackendMeter,
-        diagnosticLog: DiagnosticLogStore
+        diagnosticLog: DiagnosticLogStore,
+        onStoppedWithError: (@Sendable (String) -> Void)? = nil
     ) {
         self.ringBuffer = ringBuffer
         self.meter = meter
         self.diagnosticLog = diagnosticLog
+        self.onStoppedWithError = onStoppedWithError
     }
 
     func start() async throws {
@@ -122,13 +125,19 @@ final class ScreenCaptureAudioSource: NSObject, SCStreamOutput, SCStreamDelegate
             return
         }
 
-        ringBuffer.write(fromAudioBufferList: audioBufferList, frameCount: frameCount)
-        ringBuffer.trimToMostRecentFrames(AudioPipelineTiming.latencyBudgetFrames)
-        meter.markCaptureBuffer()
+        let writeResult = ringBuffer.write(fromAudioBufferList: audioBufferList, frameCount: frameCount)
+        let trimmedFrames = ringBuffer.trimToMostRecentFrames(AudioPipelineTiming.latencyBudgetFrames)
+        meter.markCaptureBuffer(
+            frameCount: frameCount,
+            droppedFrames: writeResult.droppedFrames + trimmedFrames,
+            availableFrames: ringBuffer.availableFrames
+        )
     }
 
     func stream(_ stream: SCStream, didStopWithError error: Error) {
-        record(.error, "ScreenCaptureKit stream stopped: \(error.localizedDescription)")
+        let message = "ScreenCaptureKit stream stopped: \(error.localizedDescription)"
+        record(.error, message)
+        onStoppedWithError?(message)
     }
 
     private func isFloat32PCM(_ sampleBuffer: CMSampleBuffer) -> Bool {

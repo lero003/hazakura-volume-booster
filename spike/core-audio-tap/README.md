@@ -118,7 +118,7 @@ open build/Build/Products/Debug/CoreAudioTapPoC.app
 ```
 
 初回起動時に **`NSAudioCaptureUsageDescription` の OS ダイアログ**が出るので「許可」する。  
-以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / event log を確認できる。
+以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / event log を確認できる。`Copy` で診断スナップショットをクリップボードへコピーできる。
 
 ## 検証チェックリスト
 
@@ -131,6 +131,8 @@ open build/Build/Products/Debug/CoreAudioTapPoC.app
 [ ] 元音と加工後音が二重に鳴らない
 [ ] 100% 復帰できる
 [ ] アプリ終了で通常出力に戻る
+[ ] ⌘Q / Quit で gain=1.0 → stop の安全停止ログが出る
+[ ] スリープ前に 100% へ戻り、復帰後に保存値へ戻る
 [ ] 強制終了後に OS 側に tap/routing が残らない
 [ ] 権限拒否でクラッシュしない（Setting > Privacy で拒否して再起動）
 [ ] マイク権限ダイアログが出ない
@@ -189,6 +191,7 @@ system_profiler SPAudioDataType | grep -i 'hbb-poc'
 v0.1 beta PoC から次に進む場合:
 
 1. 強制終了・スリープ復帰・出力デバイス変更時の挙動を確認する
-2. `docs/TECH_SPIKE.md` の結果欄を更新する
-3. この `spike/core-audio-tap/` の実装を本体プロジェクトへ昇格するか判断する
-4. Developer ID署名 / Notarized DMG / Privacy Manifest を整備する
+2. Dev 診断の underrun / dropped frames / available frames を見ながら10分以上の連続再生を確認する
+3. `docs/TECH_SPIKE.md` の結果欄を更新する
+4. この `spike/core-audio-tap/` の実装を本体プロジェクトへ昇格するか判断する
+5. Developer ID署名 / Notarized DMG / Privacy Manifest を整備する

@@ -8,8 +8,9 @@
 - 純Core Audio経路（AVAudioEngine inputNode / AudioDeviceCreateIOProcID / HALOutput AudioUnit）はいずれも v0.1 beta の active 経路としては不採用
 - 現在は **Core Audio process tap で元音を muted にし、ScreenCaptureKit audio → PCMFloatRingBuffer → AVAudioSourceNode** で加工後音を出す構成
 - ユーザー手元確認で、音量ブースト、二重再生の抑制、音質劣化の軽減は v0.1 beta として許容範囲に到達
+- `daily-use-ok` に向け、コード側では Quit / `⌘Q` / スリープ前の neutral gain、二重起動抑止、出力デバイス変更時の安全停止、Dev 診断拡張を追加済み
 - 計画ドキュメント（`docs/` 配下 8 本）は完成済み、レビュー反映済み
-- 残る主な確認は、強制終了後の残骸確認、スリープ復帰、出力デバイス変更、配布用署名・公証
+- 残る主な確認は、強制終了後の残骸確認、スリープ復帰・出力デバイス変更の実機挙動、10分以上の連続再生、配布用署名・公証
 - 詳細は後述の「PoC 試行の歴史」「現コードの構成」「検証チェックリスト」を参照
 
 ## 環境
@@ -161,8 +162,8 @@ spike/core-audio-tap/
 | `ScreenCaptureAudioSource.swift` | ✅ active | ScreenCaptureKit audio buffer を ring buffer へ書き込む |
 | `PCMFloatRingBuffer.swift` | ✅ active | capture/render間の吸収。短すぎるtrimでブツ音が出たため latency budget を拡大済み |
 | `SystemTap.swift` | ✅ active | `muteBehavior = .muted`、自アプリ bundle id を除外して二重再生を抑える |
-| `PoCAudioEngine.swift` | ✅ active | 診断タイマーで capture/render/gain を UI に表示 |
-| `ContentView.swift` | ✅ active | `DiagnosticsView` と Dev toggle を含む |
+| `PoCAudioEngine.swift` | ✅ active | 診断タイマーで capture/render/gain/underrun/drop を UI に表示。Quit / sleep / wake / 出力変更の安全側処理を集約 |
+| `ContentView.swift` | ✅ active | `DiagnosticsView`、Dev toggle、copy diagnostics を含む |
 | `AudioIOProc.h/.mm` | ❌ 未使用 | v1 IOProc経路の残骸。active経路では呼ばれていない |
 | `GainProcessor.swift` | ✅ active | linear gain と soft limiter。テスト対象 |
 | `Info.plist` | ✅ 動作確認済み | `NSAudioCaptureUsageDescription` 入り、`LSUIElement = true` |
@@ -312,3 +313,8 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
   - ScreenCaptureKit audio capture → PCMFloatRingBuffer → AVAudioSourceNode 出力へ変更
   - soft limiter と latency budget 拡大で音割れ・ブツ音を軽減
   - 単体テスト 19/19 pass、Debug build 成功
+- **2026-06-17（daily-use-ok safety slice）**:
+  - Quit / `⌘Q` / termination で `gain=1.0` を先に適用してから backend を停止する API を追加
+  - スリープ前 neutral / 復帰後 restored gain、出力デバイス変更時の安全停止、二重起動抑止を追加
+  - Dev 診断に available frames / underrun count / dropped frames / latest buffer size と copy diagnostics を追加
+  - 単体テスト 23/23 pass
