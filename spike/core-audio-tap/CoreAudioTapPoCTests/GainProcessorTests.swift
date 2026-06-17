@@ -86,6 +86,63 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(store.entries.isEmpty)
     }
 
+    func testInfoPlistDocumentsSystemAudioCaptureWithoutMicrophoneAccess() throws {
+        let plist = try loadInfoPlist()
+
+        let audioDescription = try XCTUnwrap(plist["NSAudioCaptureUsageDescription"] as? String)
+        XCTAssertTrue(audioDescription.contains("system audio output"))
+        XCTAssertTrue(audioDescription.contains("does not record, store, or transmit audio"))
+        XCTAssertNil(plist["NSMicrophoneUsageDescription"])
+    }
+
+    func testContentViewSourceLabelsCoreControlsForAccessibility() throws {
+        let source = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/ContentView.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains(".accessibilityLabel(\"Boost level\")"))
+        XCTAssertTrue(source.contains(".accessibilityValue(gainAccessibilityValue)"))
+        XCTAssertTrue(source.contains(".accessibilityLabel(\"Reset boost to 100 percent\")"))
+        XCTAssertTrue(source.contains(".accessibilityLabel(\"Boost on or off\")"))
+        XCTAssertTrue(source.contains(".accessibilityLabel(startStopAccessibilityLabel)"))
+        XCTAssertTrue(source.contains(".accessibilityLabel(\"Quit Hazakura Boost\")"))
+        XCTAssertTrue(source.contains(".accessibilityLabel(\"Developer diagnostics\")"))
+    }
+
+    func testStatusPresentationGivesActionableMessagesForStoppedStates() {
+        let manual = BoostStatusPresentation.make(
+            statusText: "manual start required",
+            isRunning: false,
+            isEnabled: true,
+            lastError: nil
+        )
+        XCTAssertEqual(manual.headline, "Start required after wake")
+        XCTAssertEqual(manual.detail, "Press Start to reconnect the audio path.")
+        XCTAssertEqual(manual.severity, .notice)
+        XCTAssertFalse(manual.showsErrorBanner)
+
+        let permission = BoostStatusPresentation.make(
+            statusText: "permission denied",
+            isRunning: false,
+            isEnabled: true,
+            lastError: "System audio access was denied"
+        )
+        XCTAssertEqual(permission.headline, "System audio access is not allowed")
+        XCTAssertEqual(permission.severity, .warning)
+        XCTAssertTrue(permission.detail.contains("System Settings"))
+
+        let restart = BoostStatusPresentation.make(
+            statusText: "restart required",
+            isRunning: false,
+            isEnabled: true,
+            lastError: "Default output device changed"
+        )
+        XCTAssertEqual(restart.headline, "Restart required")
+        XCTAssertEqual(restart.severity, .warning)
+        XCTAssertTrue(restart.detail.contains("Press Start"))
+    }
+
     @MainActor
     func testStartAppliesConfiguredGainAfterEngineBecomesRunning() async throws {
         let backend = FakeAudioProcessingBackend()
@@ -97,6 +154,59 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(backend.didStart)
         let lastGain = try XCTUnwrap(backend.appliedGains.last)
         XCTAssertEqual(lastGain, 2.0, accuracy: 0.001)
+    }
+
+    @MainActor
+    func testPermissionDeniedStartFailureForcesNeutralAndStops() async throws {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+
+        engine.configuredGain = 3.0
+        backend.queuedStartErrors = [
+            FakeAudioProcessingBackend.makeError("System audio capture permission denied")
+        ]
+
+        await engine.startAsync()
+
+        XCTAssertFalse(engine.isRunning)
+        XCTAssertEqual(engine.statusText, "permission denied")
+        XCTAssertEqual(engine.lastError, "System audio access was denied")
+        XCTAssertTrue(backend.didStop)
+        XCTAssertEqual(backend.appliedGains.last, 1.0)
+    }
+
+    @MainActor
+    func testDiagnosticSnapshotIncludesReportContext() async throws {
+        let log = DiagnosticLogStore()
+        let backend = FakeAudioProcessingBackend()
+        backend.diagnostics = AudioBackendDiagnostics(
+            captureBufferCount: 8_426,
+            renderCallCount: 15_809,
+            lastObservedGain: 2.0,
+            availableFrames: 1_920,
+            underrunCount: 30,
+            droppedFrameCount: 0,
+            latestBufferFrameCount: 960
+        )
+        let engine = PoCAudioEngine(
+            diagnosticLog: log,
+            audioBackend: backend,
+            monitorsOutputDeviceChanges: false
+        )
+
+        engine.configuredGain = 2.0
+        await engine.startAsync()
+        log.record(.warning, "Wake restore paused after 3 attempts; manual Start required")
+
+        let snapshot = engine.diagnosticSnapshotText()
+
+        XCTAssertTrue(snapshot.contains("appVersion:"))
+        XCTAssertTrue(snapshot.contains("build:"))
+        XCTAssertTrue(snapshot.contains("status: running"))
+        XCTAssertTrue(snapshot.contains("health:"))
+        XCTAssertTrue(snapshot.contains("healthLevel:"))
+        XCTAssertTrue(snapshot.contains("recentEvents:"))
+        XCTAssertTrue(snapshot.contains("manual Start required"))
     }
 
     @MainActor
@@ -408,6 +518,21 @@ final class GainProcessorTests: XCTestCase {
 
         XCTAssertFalse(engine.isRunning)
         XCTAssertEqual(backend.startCount, 0)
+    }
+
+    private func loadInfoPlist() throws -> [String: Any] {
+        let path = repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/Resources/Info.plist")
+        return try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: Any])
+    }
+
+    private func repositoryFile(_ relativePath: String) -> String {
+        let testFile = URL(fileURLWithPath: #filePath)
+        let repositoryRoot = testFile
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        return repositoryRoot.appendingPathComponent(relativePath).path
     }
 }
 

@@ -80,6 +80,18 @@ final class DiagnosticLogStore: ObservableObject {
     }
 }
 
+enum PoCAudioEngineStatus: String, CaseIterable {
+    case idle
+    case running
+    case stopped
+    case sleeping
+    case waking
+    case manualStartRequired = "manual start required"
+    case restartRequired = "restart required"
+    case permissionDenied = "permission denied"
+    case error
+}
+
 @MainActor
 final class PoCAudioEngine: ObservableObject {
 
@@ -203,9 +215,15 @@ final class PoCAudioEngine: ObservableObject {
         } catch {
             let errMsg = error.localizedDescription
             log.error("start() failed: \(errMsg, privacy: .public)")
-            diagnosticLog.record(.error, errMsg)
-            lastError = errMsg
-            statusText = "error"
+            if Self.isPermissionDeniedError(error) {
+                diagnosticLog.record(.warning, "System audio access denied: \(errMsg)")
+                lastError = "System audio access was denied"
+                statusText = PoCAudioEngineStatus.permissionDenied.rawValue
+            } else {
+                diagnosticLog.record(.error, errMsg)
+                lastError = errMsg
+                statusText = PoCAudioEngineStatus.error.rawValue
+            }
             cleanupAfterFailure()
         }
     }
@@ -228,7 +246,7 @@ final class PoCAudioEngine: ObservableObject {
 
         isRunning = false
         isEnabled = true
-        statusText = "stopped"
+        statusText = PoCAudioEngineStatus.stopped.rawValue
         captureBufferCount = 0
         renderCallCount = 0
         lastObservedGain = 0.0
@@ -255,7 +273,7 @@ final class PoCAudioEngine: ObservableObject {
         audioBackend.setLinearGain(1.0)
         audioBackend.stop()
         isRunning = false
-        statusText = "stopped"
+        statusText = PoCAudioEngineStatus.stopped.rawValue
         lastObservedGain = 0.0
         availableFrames = 0
         underrunCount = 0
@@ -278,7 +296,7 @@ final class PoCAudioEngine: ObservableObject {
         audioBackend.stop()
         isRunning = false
         resetDiagnostics()
-        statusText = "sleeping"
+        statusText = PoCAudioEngineStatus.sleeping.rawValue
         diagnosticLog.record(.info, "Sleep requested; output gain forced to 100% and audio pipeline stopped")
     }
 
@@ -307,7 +325,7 @@ final class PoCAudioEngine: ObservableObject {
         configuredGain = snapshot.configuredGain
         isEnabled = snapshot.isEnabled
         guard snapshot.wasRunning else {
-            statusText = "stopped"
+            statusText = PoCAudioEngineStatus.stopped.rawValue
             diagnosticLog.record(.info, "Wake detected; boost was not running before sleep")
             return
         }
@@ -320,7 +338,7 @@ final class PoCAudioEngine: ObservableObject {
 
         while true {
             do {
-                statusText = attemptIndex == 0 ? "waking" : "waking retry \(attemptIndex)"
+                statusText = attemptIndex == 0 ? PoCAudioEngineStatus.waking.rawValue : "waking retry \(attemptIndex)"
                 diagnosticLog.record(.info, "Wake restore attempt \(attemptIndex + 1): restarting ScreenCaptureKit audio pipeline")
                 try await audioBackend.start()
 
@@ -328,7 +346,7 @@ final class PoCAudioEngine: ObservableObject {
                 applyEffectiveGain()
 
                 lastError = nil
-                statusText = "running"
+                statusText = PoCAudioEngineStatus.running.rawValue
                 hasReportedMissingCaptureBuffers = false
                 hasReportedMissingRenderCalls = false
                 startDiagnosticTimer()
@@ -343,7 +361,7 @@ final class PoCAudioEngine: ObservableObject {
 
                 guard attemptIndex < wakeRestoreRetryDelaysNanoseconds.count else {
                     lastError = nil
-                    statusText = "manual start required"
+                    statusText = PoCAudioEngineStatus.manualStartRequired.rawValue
                     diagnosticLog.record(.warning, "Wake restore paused after \(attemptIndex + 1) attempts; manual Start required: \(errMsg)")
                     return
                 }
@@ -371,13 +389,19 @@ final class PoCAudioEngine: ObservableObject {
     }
 
     func diagnosticSnapshotText() -> String {
+        refreshDiagnosticsFromBackend()
         let percent = Int((configuredGain * 100).rounded())
         let health = backendHealth
+        let info = Bundle.main.infoDictionary ?? [:]
+        let appVersion = info["CFBundleShortVersionString"] as? String ?? "unknown"
+        let build = info["CFBundleVersion"] as? String ?? "unknown"
         let entries = diagnosticLog.entries.suffix(20).map { entry in
             "[\(entry.level.label)] \(entry.message)"
         }.joined(separator: "\n")
         return """
         Hazakura Boost diagnostics
+        appVersion: \(appVersion)
+        build: \(build)
         status: \(statusText)
         running: \(isRunning)
         enabled: \(isEnabled)
@@ -390,6 +414,7 @@ final class PoCAudioEngine: ObservableObject {
         underrunCount: \(underrunCount)
         droppedFrameCount: \(droppedFrameCount)
         latestBufferFrameCount: \(latestBufferFrameCount)
+        healthLevel: \(health.level.rawValue)
         health: \(health.summary)
         healthRecommendation: \(health.recommendation)
         lastError: \(lastError ?? "none")
@@ -451,6 +476,26 @@ final class PoCAudioEngine: ObservableObject {
         return min(4.0, max(1.0, gain))
     }
 
+    private static func isPermissionDeniedError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        let haystack = [
+            nsError.domain,
+            nsError.localizedDescription,
+            nsError.localizedFailureReason ?? "",
+            nsError.localizedRecoverySuggestion ?? "",
+        ].joined(separator: " ").lowercased()
+
+        return haystack.contains("permission")
+            || haystack.contains("denied")
+            || haystack.contains("not authorized")
+            || haystack.contains("not authorised")
+            || haystack.contains("not allowed")
+            || haystack.contains("declined")
+            || haystack.contains("許可")
+            || haystack.contains("拒否")
+            || haystack.contains("承認")
+    }
+
     private func startOutputDeviceMonitor() {
         guard monitorsOutputDeviceChanges else { return }
         do {
@@ -477,6 +522,17 @@ final class PoCAudioEngine: ObservableObject {
         )
     }
 
+    private func refreshDiagnosticsFromBackend() {
+        let diagnostics = audioBackend.diagnostics
+        captureBufferCount = diagnostics.captureBufferCount
+        renderCallCount = diagnostics.renderCallCount
+        lastObservedGain = diagnostics.lastObservedGain
+        availableFrames = diagnostics.availableFrames
+        underrunCount = diagnostics.underrunCount
+        droppedFrameCount = diagnostics.droppedFrameCount
+        latestBufferFrameCount = diagnostics.latestBufferFrameCount
+    }
+
     private func resetDiagnostics() {
         captureBufferCount = 0
         renderCallCount = 0
@@ -500,7 +556,7 @@ final class PoCAudioEngine: ObservableObject {
         audioBackend.setLinearGain(1.0)
         audioBackend.stop()
         isRunning = false
-        statusText = "restart required"
+        statusText = PoCAudioEngineStatus.restartRequired.rawValue
         lastError = message
         captureBufferCount = 0
         renderCallCount = 0

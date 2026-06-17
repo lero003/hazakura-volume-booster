@@ -330,3 +330,11 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
   - `didWakeNotification` に加えて `screensDidWakeNotification` でも復帰再開を試行
   - 復帰直後の start が一度失敗しても短い retry で再試行する
   - 単体テスト 30/30 pass
+- **2026-06-17（app quality hardening）**:
+  - 復帰後の最終失敗は `Restart required` ではなく `Start required after wake` として手動 Start 待ちにする
+  - start failure のうち権限拒否らしいものを `permission denied` に分類し、gain=1.0 と stop を通す
+  - UI 状態表示を `manual start required` / `restart required` / `permission denied` / `error` で分け、主要操作に accessibility label/value/hint を追加
+  - 診断コピーに app version / build / status / health level / recent events を含める
+  - active 経路は ScreenCaptureKit + ring buffer + AVAudioEngine のまま維持し、旧 IOProc 経路は履歴として残す
+  - 手動観測: 10分連続再生は聴感上問題なし。復帰後は完全自動 Start でなくても、手動 Start で再権限ダイアログなしに復帰できる
+  - 単体テスト 36/36 pass、Debug build 成功

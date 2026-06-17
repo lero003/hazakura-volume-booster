@@ -1,6 +1,91 @@
 import SwiftUI
 import AppKit
 
+enum BoostStatusSeverity: Equatable {
+    case normal
+    case notice
+    case warning
+    case error
+}
+
+struct BoostStatusPresentation: Equatable {
+    let headline: String
+    let detail: String
+    let severity: BoostStatusSeverity
+    let showsErrorBanner: Bool
+
+    static func make(statusText: String, isRunning: Bool, isEnabled: Bool, lastError: String?) -> BoostStatusPresentation {
+        if isRunning {
+            if !isEnabled {
+                return BoostStatusPresentation(
+                    headline: "一時停止中（設定値は保持）",
+                    detail: "ON に戻すと保存中のブースト値へ復帰します。",
+                    severity: .notice,
+                    showsErrorBanner: false
+                )
+            }
+            return BoostStatusPresentation(
+                headline: statusText,
+                detail: "Audio is processed locally. It is not recorded, stored, or transmitted.",
+                severity: .normal,
+                showsErrorBanner: false
+            )
+        }
+
+        switch statusText {
+        case PoCAudioEngineStatus.sleeping.rawValue:
+            return BoostStatusPresentation(
+                headline: "sleeping",
+                detail: "Sleep preparation forced output gain to 100%.",
+                severity: .notice,
+                showsErrorBanner: false
+            )
+        case PoCAudioEngineStatus.waking.rawValue:
+            return BoostStatusPresentation(
+                headline: "waking",
+                detail: "Reconnecting the audio path after wake.",
+                severity: .notice,
+                showsErrorBanner: false
+            )
+        case PoCAudioEngineStatus.manualStartRequired.rawValue:
+            return BoostStatusPresentation(
+                headline: "Start required after wake",
+                detail: "Press Start to reconnect the audio path.",
+                severity: .notice,
+                showsErrorBanner: false
+            )
+        case PoCAudioEngineStatus.restartRequired.rawValue:
+            return BoostStatusPresentation(
+                headline: "Restart required",
+                detail: "Press Start to rebuild the audio path. \(lastError ?? "")",
+                severity: .warning,
+                showsErrorBanner: true
+            )
+        case PoCAudioEngineStatus.permissionDenied.rawValue:
+            return BoostStatusPresentation(
+                headline: "System audio access is not allowed",
+                detail: "Allow CoreAudioTapPoC in System Settings, then press Start again.",
+                severity: .warning,
+                showsErrorBanner: true
+            )
+        case PoCAudioEngineStatus.error.rawValue:
+            return BoostStatusPresentation(
+                headline: "error",
+                detail: "Press Start to retry. Open Dev diagnostics if this repeats. \(lastError ?? "")",
+                severity: .error,
+                showsErrorBanner: true
+            )
+        default:
+            return BoostStatusPresentation(
+                headline: "Boost を開始してください",
+                detail: "システム音をローカル処理します。録音・保存・送信はしません。",
+                severity: .normal,
+                showsErrorBanner: false
+            )
+        }
+    }
+}
+
 struct ContentView: View {
     @ObservedObject private var engine: PoCAudioEngine
     @State private var isShowingDevMode = false
@@ -18,9 +103,7 @@ struct ContentView: View {
                 StatusIndicator(isRunning: engine.isRunning)
             }
 
-            Text(statusText)
-                .font(.subheadline)
-                .foregroundStyle(engine.isRunning ? .primary : .secondary)
+            StatusMessageView(presentation: statusPresentation)
 
             Divider()
 
@@ -40,18 +123,25 @@ struct ContentView: View {
                 Text("400%").font(.caption2)
             }
             .disabled(!engine.isRunning || !engine.isEnabled)
+            .accessibilityLabel("Boost level")
+            .accessibilityValue(gainAccessibilityValue)
+            .accessibilityHint("Adjusts the local system audio boost level.")
 
             HStack(spacing: 8) {
                 Button("100%に戻す") {
                     engine.resetToNeutral()
                 }
                 .disabled(!engine.isRunning)
+                .accessibilityLabel("Reset boost to 100 percent")
+                .accessibilityHint("Returns output gain to neutral.")
 
                 Spacer()
 
                 Toggle("ON", isOn: $engine.isEnabled)
                     .toggleStyle(.switch)
                     .disabled(!engine.isRunning)
+                    .accessibilityLabel("Boost on or off")
+                    .accessibilityHint("Turns boost processing on or off while keeping the selected boost value.")
             }
 
             HStack(spacing: 8) {
@@ -66,17 +156,23 @@ struct ContentView: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .controlSize(.large)
+                .accessibilityLabel(startStopAccessibilityLabel)
+                .accessibilityHint("Starts or stops the audio processing path.")
                 Spacer()
                 Button("終了") {
                     engine.stop()
                     NSApplication.shared.terminate(nil)
                 }
                 .controlSize(.large)
+                .accessibilityLabel("Quit Hazakura Boost")
+                .accessibilityHint("Stops audio processing safely, then quits the app.")
             }
 
             Toggle("Dev", isOn: $isShowingDevMode)
                 .toggleStyle(.switch)
                 .font(.caption)
+                .accessibilityLabel("Developer diagnostics")
+                .accessibilityHint("Shows audio pipeline counters and recent diagnostic events.")
 
             if isShowingDevMode {
                 DevDiagnosticsView(
@@ -94,11 +190,11 @@ struct ContentView: View {
                 )
             }
 
-            if let err = engine.lastError {
+            if statusPresentation.showsErrorBanner {
                 GroupBox {
-                    Text("⚠️ \(err)")
+                    Text("⚠️ \(statusPresentation.detail)")
                         .font(.caption)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(statusPresentation.severity == .error ? .red : .orange)
                         .textSelection(.enabled)
                 }
             }
@@ -109,28 +205,13 @@ struct ContentView: View {
 
     // MARK: - Helpers
 
-    private var statusText: String {
-        if !engine.isRunning {
-            switch engine.statusText {
-            case "sleeping":
-                return "sleeping"
-            case "waking":
-                return "waking"
-            case "restart required":
-                return "Restart required"
-            case "manual start required":
-                return "Start required after wake"
-            case "error":
-                return "error"
-            default:
-                break
-            }
-            return "Boost を開始してください"
-        }
-        if !engine.isEnabled {
-            return "一時停止中（設定値は保持）"
-        }
-        return engine.statusText
+    private var statusPresentation: BoostStatusPresentation {
+        BoostStatusPresentation.make(
+            statusText: engine.statusText,
+            isRunning: engine.isRunning,
+            isEnabled: engine.isEnabled,
+            lastError: engine.lastError
+        )
     }
 
     private var gainLabel: String {
@@ -142,6 +223,15 @@ struct ContentView: View {
         return "Boost \(percent)%"
     }
 
+    private var gainAccessibilityValue: String {
+        if !engine.isEnabled { return "Paused" }
+        return "\(Int((engine.configuredGain * 100).rounded())) percent"
+    }
+
+    private var startStopAccessibilityLabel: String {
+        engine.isRunning ? "Stop boost processing" : "Start boost processing"
+    }
+
     @ViewBuilder
     private func presetButton(_ title: String, value: Double) -> some View {
         Button(title) {
@@ -150,6 +240,36 @@ struct ContentView: View {
         }
         .disabled(!engine.isRunning || !engine.isEnabled)
         .controlSize(.small)
+    }
+}
+
+private struct StatusMessageView: View {
+    let presentation: BoostStatusPresentation
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(presentation.headline)
+                .font(.subheadline)
+                .foregroundStyle(headlineColor)
+            Text(presentation.detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var headlineColor: Color {
+        switch presentation.severity {
+        case .normal:
+            return .primary
+        case .notice:
+            return .secondary
+        case .warning:
+            return .orange
+        case .error:
+            return .red
+        }
     }
 }
 

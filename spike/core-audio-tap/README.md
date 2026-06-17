@@ -118,7 +118,9 @@ open build/Build/Products/Debug/CoreAudioTapPoC.app
 ```
 
 初回起動時に **`NSAudioCaptureUsageDescription` の OS ダイアログ**が出るので「許可」する。  
-以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / health / event log を確認できる。`Copy` で診断スナップショットをクリップボードへコピーできる。
+以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / health / event log を確認できる。`Copy` で app version / build / status / health / recent events を含む診断スナップショットをクリップボードへコピーできる。
+
+Hazakura Boost はシステム音をローカル処理して音量を持ち上げる。録音・保存・外部送信はしない。マイク権限も要求しない。
 
 ## 検証チェックリスト
 
@@ -132,13 +134,21 @@ open build/Build/Products/Debug/CoreAudioTapPoC.app
 [ ] 100% 復帰できる
 [ ] アプリ終了で通常出力に戻る
 [ ] ⌘Q / Quit で gain=1.0 → stop の安全停止ログが出る
-[ ] スリープ前に 100% へ戻り、復帰後に保存値へ戻る
+[ ] スリープ前に 100% へ戻り、復帰後は自動復元または手動 Start で保存値へ戻る
 [ ] 強制終了後に OS 側に tap/routing が残らない
 [ ] 権限拒否でクラッシュしない（Setting > Privacy で拒否して再起動）
 [ ] マイク権限ダイアログが出ない
 [ ] レイテンシが許容範囲
 [ ] ブツ音・ノイズが常用不能なほど出ない
 ```
+
+### 2026-06-17 手動観測メモ
+
+- 10分程度の連続再生では、聴感上のノイズ・無音化・常用不能なブツ音は確認されていない。
+- 5〜10分再生時の underrun はおおむね 25〜30 程度、dropped frames は 0。現行 health 判定では低頻度 underrun として `Watch` 扱いにする。
+- スリープ復帰直後は ScreenCaptureKit が display/window 不在を返す場合がある。この場合は完全自動 Start を追わず、`Start required after wake` として手動 Start 待ちにする。
+- 復帰後の手動 Start では、再度の権限ダイアログなしに音源ブーストへ戻れることを確認済み。
+- Activity Monitor 強制終了後の `system_profiler SPAudioDataType | grep -i 'hbb-poc'` は、まだこのメモでは未確認。
 
 ### 強制終了の検証手順
 
