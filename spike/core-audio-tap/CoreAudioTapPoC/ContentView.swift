@@ -14,16 +14,8 @@ struct BoostStatusPresentation: Equatable {
     let severity: BoostStatusSeverity
     let showsErrorBanner: Bool
 
-    static func make(statusText: String, isRunning: Bool, isEnabled: Bool, lastError: String?) -> BoostStatusPresentation {
+    static func make(statusText: String, isRunning: Bool, lastError: String?) -> BoostStatusPresentation {
         if isRunning {
-            if !isEnabled {
-                return BoostStatusPresentation(
-                    headline: "一時停止中（設定値は保持）",
-                    detail: "ON に戻すと保存中のブースト値へ復帰します。",
-                    severity: .notice,
-                    showsErrorBanner: false
-                )
-            }
             return BoostStatusPresentation(
                 headline: statusText,
                 detail: "Audio is processed locally. It is not recorded, stored, or transmitted.",
@@ -122,34 +114,10 @@ struct ContentView: View {
             } maximumValueLabel: {
                 Text("400%").font(.caption2)
             }
-            .disabled(!engine.isRunning || !engine.isEnabled)
+            .disabled(!engine.isRunning)
             .accessibilityLabel("Boost level")
             .accessibilityValue(gainAccessibilityValue)
             .accessibilityHint("Adjusts the local system audio boost level.")
-
-            HStack(spacing: 8) {
-                Button("100%に戻す") {
-                    engine.resetToNeutral()
-                }
-                .disabled(!engine.isRunning)
-                .accessibilityLabel("Reset boost to 100 percent")
-                .accessibilityHint("Returns output gain to neutral.")
-
-                Spacer()
-
-                Toggle("ON", isOn: $engine.isEnabled)
-                    .toggleStyle(.switch)
-                    .disabled(!engine.isRunning)
-                    .accessibilityLabel("Boost on or off")
-                    .accessibilityHint("Turns boost processing on or off while keeping the selected boost value.")
-            }
-
-            HStack(spacing: 8) {
-                presetButton("0%", value: 0.0)
-                presetButton("100%", value: 1.0)
-                presetButton("200%", value: 2.0)
-                presetButton("400%", value: 4.0)
-            }
 
             HStack {
                 Button(engine.isRunning ? "停止" : "開始") {
@@ -161,7 +129,7 @@ struct ContentView: View {
                 .accessibilityHint("Starts or stops the audio processing path.")
                 Spacer()
                 Button("終了") {
-                    engine.stop()
+                    engine.shutdownForAppTermination()
                     NSApplication.shared.terminate(nil)
                 }
                 .controlSize(.large)
@@ -210,37 +178,22 @@ struct ContentView: View {
         BoostStatusPresentation.make(
             statusText: engine.statusText,
             isRunning: engine.isRunning,
-            isEnabled: engine.isEnabled,
             lastError: engine.lastError
         )
     }
 
     private var gainLabel: String {
-        if !engine.isEnabled {
-            return "Boost (paused)"
-        }
         let percent = Int((engine.configuredGain * 100).rounded())
         if engine.configuredGain == 1.0 { return "100%" }
         return "Boost \(percent)%"
     }
 
     private var gainAccessibilityValue: String {
-        if !engine.isEnabled { return "Paused" }
         return "\(Int((engine.configuredGain * 100).rounded())) percent"
     }
 
     private var startStopAccessibilityLabel: String {
         engine.isRunning ? "Stop boost processing" : "Start boost processing"
-    }
-
-    @ViewBuilder
-    private func presetButton(_ title: String, value: Double) -> some View {
-        Button(title) {
-            engine.configuredGain = value
-            engine.isEnabled = true
-        }
-        .disabled(!engine.isRunning || !engine.isEnabled)
-        .controlSize(.small)
     }
 }
 

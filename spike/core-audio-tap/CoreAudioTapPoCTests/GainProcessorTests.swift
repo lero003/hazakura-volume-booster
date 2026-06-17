@@ -95,7 +95,7 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertNil(plist["NSMicrophoneUsageDescription"])
     }
 
-    func testContentViewSourceLabelsCoreControlsForAccessibility() throws {
+    func testContentViewSourceKeepsOnlyEssentialBoostControls() throws {
         let source = try String(
             contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/ContentView.swift"),
             encoding: .utf8
@@ -103,18 +103,22 @@ final class GainProcessorTests: XCTestCase {
 
         XCTAssertTrue(source.contains(".accessibilityLabel(\"Boost level\")"))
         XCTAssertTrue(source.contains(".accessibilityValue(gainAccessibilityValue)"))
-        XCTAssertTrue(source.contains(".accessibilityLabel(\"Reset boost to 100 percent\")"))
-        XCTAssertTrue(source.contains(".accessibilityLabel(\"Boost on or off\")"))
         XCTAssertTrue(source.contains(".accessibilityLabel(startStopAccessibilityLabel)"))
         XCTAssertTrue(source.contains(".accessibilityLabel(\"Quit Hazakura Boost\")"))
         XCTAssertTrue(source.contains(".accessibilityLabel(\"Developer diagnostics\")"))
+        XCTAssertFalse(source.contains("100%に戻す"))
+        XCTAssertFalse(source.contains("Toggle(\"ON\""))
+        XCTAssertFalse(source.contains("presetButton("))
+        XCTAssertFalse(source.contains("Button(\"0%\""))
+        XCTAssertFalse(source.contains("Button(\"100%\""))
+        XCTAssertFalse(source.contains("Button(\"200%\""))
+        XCTAssertFalse(source.contains("Button(\"400%\""))
     }
 
     func testStatusPresentationGivesActionableMessagesForStoppedStates() {
         let manual = BoostStatusPresentation.make(
             statusText: "manual start required",
             isRunning: false,
-            isEnabled: true,
             lastError: nil
         )
         XCTAssertEqual(manual.headline, "Start required after wake")
@@ -125,7 +129,6 @@ final class GainProcessorTests: XCTestCase {
         let permission = BoostStatusPresentation.make(
             statusText: "permission denied",
             isRunning: false,
-            isEnabled: true,
             lastError: "System audio access was denied"
         )
         XCTAssertEqual(permission.headline, "System audio access is not allowed")
@@ -135,7 +138,6 @@ final class GainProcessorTests: XCTestCase {
         let restart = BoostStatusPresentation.make(
             statusText: "restart required",
             isRunning: false,
-            isEnabled: true,
             lastError: "Default output device changed"
         )
         XCTAssertEqual(restart.headline, "Restart required")

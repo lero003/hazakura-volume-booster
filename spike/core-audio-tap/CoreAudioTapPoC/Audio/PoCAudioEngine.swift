@@ -14,8 +14,7 @@
 //    [スピーカー / ヘッドホン]
 //
 //  状態:
-//  - configuredGain: スライダーで設定された値（0.0〜4.0）。ON/OFF に関係なく保持。
-//  - isEnabled:      ブースト処理の ON/OFF。OFF 時は effectiveGain = 1.0。
+//  - configuredGain: スライダーで設定された値（0.0〜4.0）。停止中も保持。
 //  - effectiveGain:  backend に渡す目標ゲイン。
 //
 //  参照: docs/ARCHITECTURE.md / docs/TECH_SPIKE.md
@@ -97,7 +96,7 @@ final class PoCAudioEngine: ObservableObject {
 
     // MARK: - Published state
 
-    /// スライダー設定値（0.0〜4.0 = 0%〜400%）。ON/OFF に関係なく保持する。
+    /// スライダー設定値（0.0〜4.0 = 0%〜400%）。停止中も保持する。
     @Published var configuredGain: Double = 1.0 {
         didSet {
             let sanitized = Self.sanitizedGain(configuredGain)
@@ -107,11 +106,6 @@ final class PoCAudioEngine: ObservableObject {
             }
             applyEffectiveGain()
         }
-    }
-
-    /// ブースト ON/OFF。OFF でも configuredGain は保持し、effectiveGain だけ 1.0 にする。
-    @Published var isEnabled: Bool = true {
-        didSet { applyEffectiveGain() }
     }
 
     @Published private(set) var isRunning: Bool = false
@@ -142,7 +136,7 @@ final class PoCAudioEngine: ObservableObject {
     private var wakeRestoreTask: Task<Void, Never>?
     private var hasReportedMissingCaptureBuffers = false
     private var hasReportedMissingRenderCalls = false
-    private var sleepSnapshot: (configuredGain: Double, isEnabled: Bool, wasRunning: Bool)?
+    private var sleepSnapshot: (configuredGain: Double, wasRunning: Bool)?
 
     init(
         diagnosticLog: DiagnosticLogStore = DiagnosticLogStore(),
@@ -169,7 +163,7 @@ final class PoCAudioEngine: ObservableObject {
 
     /// 現在の effective gain。UI 表示・IO proc 適用値はこれ。
     var effectiveGain: Double {
-        guard isRunning, isEnabled else { return 1.0 }
+        guard isRunning else { return 1.0 }
         return Self.sanitizedGain(configuredGain)
     }
 
@@ -245,7 +239,6 @@ final class PoCAudioEngine: ObservableObject {
         audioBackend.stop()
 
         isRunning = false
-        isEnabled = true
         statusText = PoCAudioEngineStatus.stopped.rawValue
         captureBufferCount = 0
         renderCallCount = 0
@@ -284,7 +277,7 @@ final class PoCAudioEngine: ObservableObject {
 
     func prepareForSleep() {
         guard isRunning else { return }
-        sleepSnapshot = (configuredGain: configuredGain, isEnabled: isEnabled, wasRunning: true)
+        sleepSnapshot = (configuredGain: configuredGain, wasRunning: true)
         startTask?.cancel()
         startTask = nil
         wakeRestoreTask?.cancel()
@@ -323,7 +316,6 @@ final class PoCAudioEngine: ObservableObject {
         }
         sleepSnapshot = nil
         configuredGain = snapshot.configuredGain
-        isEnabled = snapshot.isEnabled
         guard snapshot.wasRunning else {
             statusText = PoCAudioEngineStatus.stopped.rawValue
             diagnosticLog.record(.info, "Wake detected; boost was not running before sleep")
@@ -379,15 +371,6 @@ final class PoCAudioEngine: ObservableObject {
         }
     }
 
-    /// 100%（素通し）に戻す。configuredGain を 1.0 にし、isEnabled を ON に戻す。
-    func resetToNeutral() {
-        configuredGain = 1.0
-        isEnabled = true
-        applyEffectiveGain()
-        log.info("Reset to 100%")
-        diagnosticLog.record(.info, "Reset gain to 100%")
-    }
-
     func diagnosticSnapshotText() -> String {
         let diagnostics = audioBackend.diagnostics
         let percent = Int((configuredGain * 100).rounded())
@@ -404,7 +387,6 @@ final class PoCAudioEngine: ObservableObject {
         build: \(build)
         status: \(statusText)
         running: \(isRunning)
-        enabled: \(isEnabled)
         configuredGain: \(String(format: "%.2f", configuredGain))x (\(percent)%)
         effectiveGain: \(String(format: "%.2f", effectiveGain))x
         captureBufferCount: \(diagnostics.captureBufferCount)

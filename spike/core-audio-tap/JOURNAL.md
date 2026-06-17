@@ -340,3 +340,7 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-volume-booster.poc"'
   - active 経路は ScreenCaptureKit + ring buffer + AVAudioEngine のまま維持し、旧 IOProc 経路は履歴として残す
   - 手動観測: 10分連続再生は聴感上問題なし。復帰後は完全自動 Start でなくても、手動 Start で再権限ダイアログなしに復帰できる
   - 単体テスト 36/36 pass、Debug build 成功
+- **2026-06-17（negative UI slice）**:
+  - `100%に戻す`、`0%/100%/200%/400%` プリセット、`ON` トグルを削除
+  - UI を 0%〜400% スライダー、開始/停止、終了、Dev 診断へ縮小
+  - `ON` 状態は start/stop と統合し、停止中は backend gain を neutral に戻す
