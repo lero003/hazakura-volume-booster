@@ -134,18 +134,16 @@ CurrentDevice failed (OSStatus=-10851 '0xFFFFD59D')
 
 ```
 spike/core-audio-tap/
-├── project.yml                         xcodegen 用定義（.mm 含む、Bridging Header 設定済み）
+├── project.yml                         xcodegen 用定義（productName 指定済み、bridging header は廃止）
 ├── CoreAudioTapPoC.xcodeproj/          xcodegen で生成（git管理外でも再生成可）
 ├── CoreAudioTapPoC/
-│   ├── CoreAudioTapPoCApp.swift         @main
-│   ├── ContentView.swift                SwiftUI: Slider + 100/200/400/0% + Start/Stop + Diagnostics
-│   ├── CoreAudioTapPoC-Bridging-Header.h  (旧IOProc実験用。active経路では未使用)
+│   ├── CoreAudioTapPoCApp.swift         @main, MenuBarExtra, 状態別アイコン + %表示
+│   ├── ContentView.swift                SwiftUI: Slider + 開始/停止 + 終了 + Diagnostics（日本語UI）
 │   ├── Audio/
 │   │   ├── BoostAudioPipeline.swift     active: ScreenCaptureKit + ring buffer + AVAudioEngine
 │   │   ├── ScreenCaptureAudioSource.swift ScreenCaptureKit audio capture
 │   │   ├── PCMFloatRingBuffer.swift     capture/render 間のバッファ
 │   │   ├── SystemTap.swift              CATapDescription + Aggregate device（元音ミュート用）
-│   │   ├── AudioIOProc.h / .mm          残置（v1 アプローチのコード、active経路では未使用）
 │   │   ├── GainProcessor.swift          linear→dB の数式ヘルパ + soft limiter
 │   │   └── PoCAudioEngine.swift         Swift 側オーケストレータ
 │   └── Resources/
@@ -164,8 +162,8 @@ spike/core-audio-tap/
 | `PCMFloatRingBuffer.swift` | ✅ active | capture/render間の吸収。短すぎるtrimでブツ音が出たため latency budget を拡大済み |
 | `SystemTap.swift` | ✅ active | `muteBehavior = .muted`、自アプリ bundle id を除外して二重再生を抑える |
 | `PoCAudioEngine.swift` | ✅ active | 診断タイマーで capture/render/gain/underrun/drop を UI に表示。Quit / sleep / wake / 出力変更の安全側処理を集約 |
-| `ContentView.swift` | ✅ active | `DiagnosticsView`、Dev toggle、copy diagnostics を含む |
-| `AudioIOProc.h/.mm` | ❌ 未使用 | v1 IOProc経路の残骸。active経路では呼ばれていない |
+| `ContentView.swift` | ✅ active | `DiagnosticsView`、Dev toggle、copy diagnostics を含む。v0.2 でUI文字列を日本語化、状態別アイコンと%表示に対応 |
+| `AudioIOProc.h/.mm` | 🗑️ 削除済み | v1 IOProc経路の残骸。2026-06-18 に削除。履歴は下記「PoC 試行の歴史」と変更履歴を参照 |
 | `GainProcessor.swift` | ✅ active | linear gain と soft limiter。テスト対象 |
 | `Info.plist` | ✅ 動作確認済み | `NSAudioCaptureUsageDescription` 入り、`LSUIElement = true` |
 | `entitlements` | ✅ 動作確認済み | App Sandbox OFF、Hardened Runtime 必須項目 |
@@ -350,3 +348,13 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-amp"' --level info
 - **2026-06-17（permission diagnostics slice）**:
   - 権限拒否時の表示に System Settings > Privacy & Security と Start retry の次アクションを含める
   - 診断コピーに `signingKind` と `manualStartRequired` を追加
+- **2026-06-18（productName 修正 + デッドコード削除）**:
+  - `project.yml` に `productName: "Hazakura Amp"` を追加。これにより xcodegen 再生成でも生成物参照名（`PBXFileReference` の path と scheme の `BuildableName`）が `Hazakura Amp.app` になる。従来はコミット済み `.xcodeproj` を手作業で `Hazakura Amp.app` に書き換えており、`xcodegen generate` のたびに `CoreAudioTapPoC.app` に戻って `testXcodeBrandingUsesHazakuraAmpBundleIdentity` が失敗する再現性バグだった
+  - 未使用の旧 IOProc 経路を削除: `AudioIOProc.h` / `AudioIOProc.mm`、`CoreAudioTapPoC-Bridging-Header.h`、`AudioIOProcControlling` プロトコルとその適合 extension、`project.yml` の `SWIFT_OBJC_BRIDGING_HEADER` 設定。active 経路（ScreenCaptureKit + ring buffer + AVAudioEngine）は不変
+  - 単体テスト 41/41 pass、Debug build 成功
+- **2026-06-18（UI 製品レベル化）**:
+  - 実装UI文字列を日本語に統一（`UI_DESIGN.md §8` を反転）。ボタン・見出し・状態メッセージ・診断ラベルを日本語化。accessibility ラベル（VoiceOver 用）は英語ベースを維持
+  - メニューバーアイコンを状態別に切替（`UI_DESIGN.md §1`）。停止中=`speaker.wave.2`、動作中 101-200%=`speaker.wave.2.fill`、201-400%=`speaker.wave.3.fill`。動作中は `Boost NNN%` を表示（100% は省略）。`RightClickableStatusButton` が `PoCAudioEngine` の `isRunning` / `configuredGain` を Combine で購読
+  - ポップオーバーに最大高さ（560pt）を追加し、Dev 診断展開時に膨らみすぎないよう調整
+  - Dev 診断のヘルス状態を OK=緑 / Watch=オレンジ / Warning=赤 で色分け
+  - `testStatusPresentationGivesActionableMessagesForStoppedStates` を日本語期待値へ更新

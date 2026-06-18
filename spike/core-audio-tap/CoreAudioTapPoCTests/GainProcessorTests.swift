@@ -97,11 +97,11 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertNil(plist["NSMicrophoneUsageDescription"])
     }
 
-    func testInfoPlistUsesV02ReleaseVersion() throws {
+    func testInfoPlistUsesV03ReleaseVersion() throws {
         let plist = try loadInfoPlist()
 
-        XCTAssertEqual(plist["CFBundleShortVersionString"] as? String, "0.2.0")
-        XCTAssertEqual(plist["CFBundleVersion"] as? String, "2")
+        XCTAssertEqual(plist["CFBundleShortVersionString"] as? String, "0.3.0")
+        XCTAssertEqual(plist["CFBundleVersion"] as? String, "3")
         XCTAssertEqual(plist["CFBundleDisplayName"] as? String, "Hazakura Amp")
         XCTAssertFalse((plist["CFBundleDisplayName"] as? String)?.contains("!") ?? true)
     }
@@ -166,8 +166,8 @@ final class GainProcessorTests: XCTestCase {
             isRunning: false,
             lastError: nil
         )
-        XCTAssertEqual(manual.headline, "Start required after wake")
-        XCTAssertEqual(manual.detail, "Press Start to reconnect the audio path.")
+        XCTAssertEqual(manual.headline, "復帰後に開始が必要です")
+        XCTAssertEqual(manual.detail, "開始を押してオーディオ経路を再接続してください。")
         XCTAssertEqual(manual.severity, .notice)
         XCTAssertFalse(manual.showsErrorBanner)
 
@@ -176,20 +176,20 @@ final class GainProcessorTests: XCTestCase {
             isRunning: false,
             lastError: "System audio access was denied"
         )
-        XCTAssertEqual(permission.headline, "System audio access is not allowed")
+        XCTAssertEqual(permission.headline, "システム音声へのアクセスが許可されていません")
         XCTAssertEqual(permission.severity, .warning)
-        XCTAssertTrue(permission.detail.contains("System Settings"))
-        XCTAssertTrue(permission.detail.contains("Privacy & Security"))
-        XCTAssertTrue(permission.detail.contains("press Start again"))
+        XCTAssertTrue(permission.detail.contains("システム設定"))
+        XCTAssertTrue(permission.detail.contains("プライバシーとセキュリティ"))
+        XCTAssertTrue(permission.detail.contains("開始"))
 
         let restart = BoostStatusPresentation.make(
             statusText: "restart required",
             isRunning: false,
             lastError: "Default output device changed"
         )
-        XCTAssertEqual(restart.headline, "Restart required")
+        XCTAssertEqual(restart.headline, "再開が必要です")
         XCTAssertEqual(restart.severity, .warning)
-        XCTAssertTrue(restart.detail.contains("Press Start"))
+        XCTAssertTrue(restart.detail.contains("開始"))
     }
 
     @MainActor

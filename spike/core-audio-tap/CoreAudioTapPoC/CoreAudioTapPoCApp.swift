@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 import Darwin
 import SwiftUI
 
@@ -132,9 +133,12 @@ final class RightClickableStatusButton: NSObject {
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
     private lazy var quitMenu: NSMenu = makeQuitMenu()
+    private var observers: Set<AnyCancellable> = []
 
     init(engine: PoCAudioEngine) {
         self.engine = engine
+        // アイコンのみで状態を表現する（%ラベルはガタつくため廃止）。
+        // 停止中=塗りなしの波、動作中=塗りありの波（ゲイン帯で波の強さを変える）。
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         super.init()
 
@@ -143,16 +147,59 @@ final class RightClickableStatusButton: NSObject {
         popover.behavior = .transient
 
         if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "speaker.wave.2.fill", accessibilityDescription: "Hazakura Amp")
-            button.imagePosition = .imageOnly
             button.target = self
             button.action = #selector(handleStatusButtonAction(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
         }
+
+        updateStatusItemAppearance()
+        observeEngineState()
     }
 
     func invalidate() {
+        observers.removeAll()
         NSStatusBar.system.removeStatusItem(statusItem)
+    }
+
+    /// engine の isRunning / configuredGain を購読し、メニューバー表示を更新する。
+    private func observeEngineState() {
+        engine.$isRunning
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.updateStatusItemAppearance()
+            }
+            .store(in: &observers)
+
+        engine.$configuredGain
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.updateStatusItemAppearance()
+            }
+            .store(in: &observers)
+    }
+
+    /// 動作状態に応じてメニューバーのアイコンを切り替える。
+    /// UI_DESIGN.md §1: 停止中=塗りなしの波、動作中=塗りありの波（ゲイン帯で強さを変える）。
+    /// %ラベルは文字数変動でアイコン位置がガタつくため廃止し、アイコンのみで表現する。
+    private func updateStatusItemAppearance() {
+        let button = statusItem.button
+        let symbolName = menuBarSymbolName(isRunning: engine.isRunning, gain: engine.configuredGain)
+        let accessibilityLabel = menuBarAccessibilityLabel(isRunning: engine.isRunning, gain: engine.configuredGain)
+        button?.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: accessibilityLabel)
+        button?.title = ""
+        button?.imagePosition = .imageOnly
+    }
+
+    private func menuBarSymbolName(isRunning: Bool, gain: Double) -> String {
+        guard isRunning else { return "speaker.wave.2" }
+        // 201% 以上は波3つで強ブーストを表現。それ以外は塗りありの波2つ。
+        return gain > 2.0 ? "speaker.wave.3.fill" : "speaker.wave.2.fill"
+    }
+
+    private func menuBarAccessibilityLabel(isRunning: Bool, gain: Double) -> String {
+        guard isRunning else { return "Hazakura Amp, idle" }
+        let percent = Int((gain * 100).rounded())
+        return "Hazakura Amp, boosting at \(percent) percent"
     }
 
     @objc private func handleStatusButtonAction(_ sender: NSStatusBarButton) {

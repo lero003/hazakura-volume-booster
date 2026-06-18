@@ -33,6 +33,7 @@ targets:
     type: application
     platform: macOS
     deploymentTarget: "26.0"
+    productName: "Hazakura Amp"
     sources:
       - path: CoreAudioTapPoC
         excludes:
@@ -49,8 +50,8 @@ targets:
         LSUIElement: true
         NSAudioCaptureUsageDescription: "Hazakura Amp uses access to system audio output to apply a local volume boost. It does not record, store, or transmit audio."
         NSHumanReadableCopyright: "Hazakura Amp — Core Audio Tap verification"
-        CFBundleShortVersionString: "0.2.0"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "0.3.0"
+        CFBundleVersion: "3"
         HazakuraSigningKind: "$(CODE_SIGN_IDENTITY)"
     entitlements:
       path: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
@@ -66,7 +67,6 @@ targets:
         DEAD_CODE_STRIPPING: YES
         SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
         GCC_TREAT_WARNINGS_AS_ERRORS: NO
-        SWIFT_OBJC_BRIDGING_HEADER: CoreAudioTapPoC/CoreAudioTapPoC-Bridging-Header.h
     dependencies:
       - sdk: AudioToolbox.framework
       - sdk: AVFAudio.framework

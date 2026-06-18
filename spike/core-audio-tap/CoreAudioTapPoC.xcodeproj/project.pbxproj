@@ -17,7 +17,6 @@
 		55A2BF73A6667A6D153E44F8 /* BoostAudioPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5695216ABEC67D6B415956DA /* BoostAudioPipeline.swift */; };
 		66861DB022A85E87E8A2D8C4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DCF77F83A9EAB600C0A61E /* ContentView.swift */; };
 		820F87B4B6A5FDBC25C80E88 /* PoCAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3A88977E7A0230B9C2AC21 /* PoCAudioEngine.swift */; };
-		87BD74B83753B4FB57EB0CCA /* AudioIOProc.mm in Sources */ = {isa = PBXBuildFile; fileRef = 15BC68E5339DA8D6A5A27498 /* AudioIOProc.mm */; };
 		A46FCE1B82E736A071D2A04A /* SystemTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0C5F93241ABD6887F72624 /* SystemTap.swift */; };
 		ACA555EA0C59784767F0B61B /* GainProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48113286D3D81C85926E534B /* GainProcessor.swift */; };
 		B856402762306E31CFE26563 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CCCCFCAE5A60085794F8D29 /* SwiftUI.framework */; };
@@ -40,13 +39,10 @@
 
 /* Begin PBXFileReference section */
 		021A18CF6A5C9865BD2336A2 /* GainProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainProcessorTests.swift; sourceTree = "<group>"; };
-		15BC68E5339DA8D6A5A27498 /* AudioIOProc.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AudioIOProc.mm; sourceTree = "<group>"; };
 		1E0C5F93241ABD6887F72624 /* SystemTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemTap.swift; sourceTree = "<group>"; };
 		1E96416F64A88A5B5727022C /* PCMFloatRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCMFloatRingBuffer.swift; sourceTree = "<group>"; };
 		1E9797A36309708715328917 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
-		28178AF01151A50A07DD5392 /* CoreAudioTapPoC-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "CoreAudioTapPoC-Bridging-Header.h"; sourceTree = "<group>"; };
 		2C3A88977E7A0230B9C2AC21 /* PoCAudioEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PoCAudioEngine.swift; sourceTree = "<group>"; };
-		3F54D9D7367BABF812BBFB80 /* Hazakura Amp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hazakura Amp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		445FC41158747D8A4CEB1F39 /* AudioProcessingBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioProcessingBackend.swift; sourceTree = "<group>"; };
 		48113286D3D81C85926E534B /* GainProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainProcessor.swift; sourceTree = "<group>"; };
 		486F0A1566A640CD2E6101AE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -54,11 +50,11 @@
 		5695216ABEC67D6B415956DA /* BoostAudioPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoostAudioPipeline.swift; sourceTree = "<group>"; };
 		6FA550582B0E3A797D8D7783 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		8CCCCFCAE5A60085794F8D29 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		98949F550182CA7404735FA3 /* Hazakura Amp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hazakura Amp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A13B80013E3A05C621D24159 /* ScreenCaptureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenCaptureKit.framework; path = System/Library/Frameworks/ScreenCaptureKit.framework; sourceTree = SDKROOT; };
 		CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreAudioTapPoCApp.swift; sourceTree = "<group>"; };
 		CFC83BDE9164A49918A01573 /* CoreAudioTapPoCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreAudioTapPoCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6DCF77F83A9EAB600C0A61E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		E83AC95ADA48D5D78EEE1CA2 /* AudioIOProc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AudioIOProc.h; sourceTree = "<group>"; };
 		EF3C6E79019E8469E02FB135 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		F42BE1D410A43AB003B4625C /* ScreenCaptureAudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureAudioSource.swift; sourceTree = "<group>"; };
 		FEA3A39E29F33832EF563C75 /* AVFAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFAudio.framework; path = System/Library/Frameworks/AVFAudio.framework; sourceTree = SDKROOT; };
@@ -85,8 +81,6 @@
 		05DB9F49BE6DBDEC3144029D /* Audio */ = {
 			isa = PBXGroup;
 			children = (
-				E83AC95ADA48D5D78EEE1CA2 /* AudioIOProc.h */,
-				15BC68E5339DA8D6A5A27498 /* AudioIOProc.mm */,
 				445FC41158747D8A4CEB1F39 /* AudioProcessingBackend.swift */,
 				5695216ABEC67D6B415956DA /* BoostAudioPipeline.swift */,
 				48113286D3D81C85926E534B /* GainProcessor.swift */,
@@ -112,7 +106,6 @@
 				05DB9F49BE6DBDEC3144029D /* Audio */,
 				486F0A1566A640CD2E6101AE /* Assets.xcassets */,
 				D6DCF77F83A9EAB600C0A61E /* ContentView.swift */,
-				28178AF01151A50A07DD5392 /* CoreAudioTapPoC-Bridging-Header.h */,
 				CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */,
 			);
 			path = CoreAudioTapPoC;
@@ -145,8 +138,8 @@
 		DEEA9891AE045C2F5096A00E /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				3F54D9D7367BABF812BBFB80 /* Hazakura Amp.app */,
 				CFC83BDE9164A49918A01573 /* CoreAudioTapPoCTests.xctest */,
+				98949F550182CA7404735FA3 /* Hazakura Amp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -170,7 +163,7 @@
 			packageProductDependencies = (
 			);
 			productName = CoreAudioTapPoC;
-			productReference = 3F54D9D7367BABF812BBFB80 /* Hazakura Amp.app */;
+			productReference = 98949F550182CA7404735FA3 /* Hazakura Amp.app */;
 			productType = "com.apple.product-type.application";
 		};
 		D042BE01F8C702AAC576F42E /* CoreAudioTapPoCTests */ = {
@@ -252,7 +245,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				87BD74B83753B4FB57EB0CCA /* AudioIOProc.mm in Sources */,
 				0BA372EA96C55B8A2EA43520 /* AudioProcessingBackend.swift in Sources */,
 				55A2BF73A6667A6D153E44F8 /* BoostAudioPipeline.swift in Sources */,
 				66861DB022A85E87E8A2D8C4 /* ContentView.swift in Sources */,
@@ -296,7 +288,6 @@
 				PRODUCT_MODULE_NAME = CoreAudioTapPoC;
 				PRODUCT_NAME = "Hazakura Amp";
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "CoreAudioTapPoC/CoreAudioTapPoC-Bridging-Header.h";
 				SWIFT_TREAT_WARNINGS_AS_ERRORS = NO;
 			};
 			name = Debug;
@@ -402,7 +393,6 @@
 				PRODUCT_MODULE_NAME = CoreAudioTapPoC;
 				PRODUCT_NAME = "Hazakura Amp";
 				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "CoreAudioTapPoC/CoreAudioTapPoC-Bridging-Header.h";
 				SWIFT_TREAT_WARNINGS_AS_ERRORS = NO;
 			};
 			name = Release;

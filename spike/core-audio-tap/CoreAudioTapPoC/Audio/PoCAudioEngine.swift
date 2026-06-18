@@ -31,12 +31,6 @@ protocol SystemTapControlling: AnyObject {
     func teardown()
 }
 
-protocol AudioIOProcControlling: AnyObject {
-    func start(withDeviceID deviceID: AudioObjectID) -> OSStatus
-    func stop()
-    func setLinearGain(_ linearGain: Float)
-}
-
 enum DiagnosticLogLevel: String, Equatable {
     case info
     case warning
@@ -603,7 +597,3 @@ private final class DefaultOutputDeviceMonitor: @unchecked Sendable {
         stop()
     }
 }
-
-// AudioIOProc は Objective-C のシングルスレッド利用クラス。PoCAudioEngine 内で
-// 単一のバックグラウンドタスクから操作されるため @unchecked Sendable とする。
-extension AudioIOProc: AudioIOProcControlling, @unchecked Sendable {}

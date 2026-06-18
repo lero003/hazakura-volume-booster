@@ -17,8 +17,8 @@ struct BoostStatusPresentation: Equatable {
     static func make(statusText: String, isRunning: Bool, lastError: String?) -> BoostStatusPresentation {
         if isRunning {
             return BoostStatusPresentation(
-                headline: statusText,
-                detail: "Audio is processed locally. It is not recorded, stored, or transmitted.",
+                headline: "動作中",
+                detail: "オーディオはローカルで処理されます。録音・保存・送信は行いません。",
                 severity: .normal,
                 showsErrorBanner: false
             )
@@ -27,50 +27,50 @@ struct BoostStatusPresentation: Equatable {
         switch statusText {
         case PoCAudioEngineStatus.sleeping.rawValue:
             return BoostStatusPresentation(
-                headline: "sleeping",
-                detail: "Sleep preparation forced output gain to 100%.",
+                headline: "スリープ中",
+                detail: "スリープ準備で出力ゲインを 100% に戻しました。",
                 severity: .notice,
                 showsErrorBanner: false
             )
         case PoCAudioEngineStatus.waking.rawValue:
             return BoostStatusPresentation(
-                headline: "waking",
-                detail: "Reconnecting the audio path after wake.",
+                headline: "復帰中",
+                detail: "スリープ復帰後にオーディオ経路を再接続しています。",
                 severity: .notice,
                 showsErrorBanner: false
             )
         case PoCAudioEngineStatus.manualStartRequired.rawValue:
             return BoostStatusPresentation(
-                headline: "Start required after wake",
-                detail: "Press Start to reconnect the audio path.",
+                headline: "復帰後に開始が必要です",
+                detail: "開始を押してオーディオ経路を再接続してください。",
                 severity: .notice,
                 showsErrorBanner: false
             )
         case PoCAudioEngineStatus.restartRequired.rawValue:
             return BoostStatusPresentation(
-                headline: "Restart required",
-                detail: "Press Start to rebuild the audio path. \(lastError ?? "")",
+                headline: "再開が必要です",
+                detail: "開始を押してオーディオ経路を再構築してください。\(lastError ?? "")",
                 severity: .warning,
                 showsErrorBanner: true
             )
         case PoCAudioEngineStatus.permissionDenied.rawValue:
             return BoostStatusPresentation(
-                headline: "System audio access is not allowed",
-                detail: "Allow Hazakura Amp in System Settings > Privacy & Security, then press Start again.",
+                headline: "システム音声へのアクセスが許可されていません",
+                detail: "システム設定 > プライバシーとセキュリティ で Hazakura Amp を許可してから、再度 開始 を押してください。",
                 severity: .warning,
                 showsErrorBanner: true
             )
         case PoCAudioEngineStatus.error.rawValue:
             return BoostStatusPresentation(
-                headline: "error",
-                detail: "Press Start to retry. Open Dev diagnostics if this repeats. \(lastError ?? "")",
+                headline: "エラーが発生しました",
+                detail: "開始を押して再試行してください。繰り返す場合は Dev 診断を開いてください。\(lastError ?? "")",
                 severity: .error,
                 showsErrorBanner: true
             )
         default:
             return BoostStatusPresentation(
-                headline: "Boost を開始してください",
-                detail: "システム音をローカル処理します。録音・保存・送信はしません。",
+                headline: "ブーストを開始してください",
+                detail: "システム音をローカル処理します。録音・保存・送信は行いません。",
                 severity: .normal,
                 showsErrorBanner: false
             )
@@ -100,7 +100,8 @@ struct ContentView: View {
             Divider()
 
             HStack {
-                Text("Boost")
+                Text("ブースト")
+                    .font(.subheadline)
                 Spacer()
                 Text(gainLabel)
                     .monospacedDigit()
@@ -108,7 +109,7 @@ struct ContentView: View {
             }
 
             Slider(value: $engine.configuredGain, in: 0.0...4.0, step: 0.01) {
-                Text("Boost gain")
+                Text("ブーストゲイン")
             } minimumValueLabel: {
                 Text("0%").font(.caption2)
             } maximumValueLabel: {
@@ -170,6 +171,8 @@ struct ContentView: View {
         }
         .padding()
         .frame(width: 380)
+        .frame(maxHeight: 560)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     // MARK: - Helpers
@@ -185,7 +188,7 @@ struct ContentView: View {
     private var gainLabel: String {
         let percent = Int((engine.configuredGain * 100).rounded())
         if engine.configuredGain == 1.0 { return "100%" }
-        return "Boost \(percent)%"
+        return "ブースト \(percent)%"
     }
 
     private var gainAccessibilityValue: String {
@@ -236,7 +239,7 @@ struct StatusIndicator: View {
             Circle()
                 .fill(isRunning ? Color.green : Color.gray)
                 .frame(width: 8, height: 8)
-            Text(isRunning ? "Active" : "Idle")
+            Text(isRunning ? "動作中" : "停止中")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -256,71 +259,71 @@ struct DiagnosticsView: View {
     let isRunning: Bool
 
     var body: some View {
-        GroupBox("Diagnostics") {
+        GroupBox("診断") {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
-                    Text("Capture buffers:")
+                    Text("キャプチャバッファ:")
                     Spacer()
                     Text("\(captureBufferCount)")
                         .monospacedDigit()
                         .foregroundStyle(isRunning && captureBufferCount > 0 ? .primary : .secondary)
                 }
                 HStack {
-                    Text("Render calls:")
+                    Text("レンダー呼び出し:")
                     Spacer()
                     Text("\(renderCallCount)")
                         .monospacedDigit()
                         .foregroundStyle(isRunning && renderCallCount > 0 ? .primary : .secondary)
                 }
                 HStack {
-                    Text("Output gain:")
+                    Text("出力ゲイン:")
                     Spacer()
                     Text(String(format: "%.2f×", lastObservedGain))
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
                 HStack {
-                    Text("Available frames:")
+                    Text("利用可能フレーム:")
                     Spacer()
                     Text("\(availableFrames)")
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
                 HStack {
-                    Text("Underruns:")
+                    Text("アンダーラン:")
                     Spacer()
                     Text("\(underrunCount)")
                         .monospacedDigit()
                         .foregroundStyle(underrunCount == 0 ? Color.secondary : Color.orange)
                 }
                 HStack {
-                    Text("Dropped frames:")
+                    Text("ドロップフレーム:")
                     Spacer()
                     Text("\(droppedFrameCount)")
                         .monospacedDigit()
                         .foregroundStyle(droppedFrameCount == 0 ? Color.secondary : Color.orange)
                 }
                 HStack {
-                    Text("Latest buffer:")
+                    Text("最新バッファ:")
                     Spacer()
                     Text("\(latestBufferFrameCount)")
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                 }
                 HStack {
-                    Text("Health:")
+                    Text("ヘルス:")
                     Spacer()
                     Text(healthLabel)
                         .monospacedDigit()
                         .foregroundStyle(healthColor)
                 }
                 if isRunning && captureBufferCount == 0 {
-                    Text("⚠️ ScreenCaptureKit の音声バッファがまだ届いていない")
+                    Text("⚠️ ScreenCaptureKit の音声バッファがまだ届いていません")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
                 if isRunning && renderCallCount == 0 {
-                    Text("⚠️ AVAudioEngine の render callback がまだ呼ばれていない")
+                    Text("⚠️ AVAudioEngine のレンダー呼び出しがまだ発生していいません")
                         .font(.caption)
                         .foregroundStyle(.orange)
                 }
@@ -334,16 +337,16 @@ struct DiagnosticsView: View {
         case .ok:
             return "OK"
         case .watch:
-            return String(format: "Watch %.2f%%", health.underrunRate * 100)
+            return String(format: "注意 %.2f%%", health.underrunRate * 100)
         case .warning:
-            return String(format: "Warning %.2f%%", health.underrunRate * 100)
+            return String(format: "警告 %.2f%%", health.underrunRate * 100)
         }
     }
 
     private var healthColor: Color {
         switch health.level {
         case .ok:
-            return .secondary
+            return .green
         case .watch:
             return .orange
         case .warning:
@@ -381,15 +384,15 @@ struct DevDiagnosticsView: View {
             )
 
             HStack {
-                Text("Event Log")
+                Text("イベントログ")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Button("Copy") {
+                Button("コピー") {
                     copyDiagnostics(diagnosticSnapshot)
                 }
                 .controlSize(.small)
-                Button("Clear") {
+                Button("クリア") {
                     logStore.clear()
                 }
                 .controlSize(.small)
@@ -397,7 +400,7 @@ struct DevDiagnosticsView: View {
             }
 
             if logStore.entries.isEmpty {
-                Text("No diagnostic events yet")
+                Text("診断イベントはまだありません")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
