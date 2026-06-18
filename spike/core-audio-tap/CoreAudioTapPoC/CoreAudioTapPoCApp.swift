@@ -219,10 +219,27 @@ final class RightClickableStatusButton: NSObject {
     private func togglePopover(from button: NSStatusBarButton) {
         if popover.isShown {
             popover.performClose(nil)
-        } else {
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-            popover.contentViewController?.view.window?.makeKey()
+            return
         }
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.makeKey()
+        repositionPopoverIfNeeded()
+    }
+
+    /// メニューバーアイコンが画面右端寄りのとき、ポップオーバーが右へ見切れないよう左へずらす。
+    /// NSPopover は位置指定APIを持たないため、表示後に内部ウィンドウの原点を直接補正する。
+    private func repositionPopoverIfNeeded() {
+        guard let popoverWindow = popover.contentViewController?.view.window,
+              let screen = popoverWindow.screen ?? NSScreen.main else {
+            return
+        }
+        let visible = screen.visibleFrame
+        let frame = popoverWindow.frame
+        // 右端を越えるぶんだけ左へずらす。左端より前に行き過ぎる場合は左端で止める。
+        let overflow = frame.maxX - visible.maxX
+        guard overflow > 0 else { return }
+        let clampedOverflow = min(overflow, frame.minX - visible.minX)
+        popoverWindow.setFrameOrigin(NSPoint(x: frame.minX - clampedOverflow, y: frame.minY))
     }
 
     private func showQuitMenu(from button: NSStatusBarButton) {

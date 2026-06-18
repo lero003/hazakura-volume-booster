@@ -3,7 +3,7 @@
 > 親: `hazakura-amp/` ルート
 > 関連: [`docs/TECH_SPIKE.md`](../../docs/TECH_SPIKE.md) / [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md) / [`docs/RISKS.md`](../../docs/RISKS.md) / [`docs/PERMISSIONS.md`](../../docs/PERMISSIONS.md)
 
-Hazakura Amp v0.2 candidate の現在の実体になっている技術検証（PoC）。
+Hazakura Amp v0.3 の現在の実体になっている技術検証（PoC）。
 
 アプリとしてユーザーに見える名称は `Hazakura Amp`。`CoreAudioTapPoC` はターゲット名・スキーム名・内部ソースフォルダ名として当面維持する。
 
@@ -14,7 +14,7 @@ Hazakura Amp v0.2 candidate の現在の実体になっている技術検証（P
 - **PCMFloatRingBuffer**: capture側とrender側の時間差を吸収する
 - **AVAudioEngine / AVAudioSourceNode**: ring bufferを読み、ゲイン処理後の音を出力する
 
-つまり、現在のPoCは「Core Audio Tapで直接IOProcを駆動する」実装ではない。旧経路のコードと記録は、失敗した技術検証として残している。
+つまり、現在のPoCは「Core Audio Tapで直接IOProcを駆動する」実装ではない。かつて存在した旧経路（`AudioDeviceCreateIOProcID`）のコードは v0.3 で削除した。経緯は下記と [`JOURNAL.md`](./JOURNAL.md) を参照。
 
 ## 経緯（なぜこの構成か）
 
@@ -22,7 +22,7 @@ Hazakura Amp v0.2 candidate の現在の実体になっている技術検証（P
 
 その後 `AudioDeviceCreateIOProcID` を試したが IO proc が呼ばれず、`HALOutput AudioUnit` への移行も `CurrentDevice` で失敗した。
 
-現在は、Core Audio process tap を **元音ミュート用**に使い、音声取得は ScreenCaptureKit、出力は AVAudioEngine に分離している。これにより、v0.1 beta として必要な「音を持ち上げる」「二重再生を避ける」「Dev診断で状態を見る」は成立している。
+現在は、Core Audio process tap を **元音ミュート用**に使い、音声取得は ScreenCaptureKit、出力は AVAudioEngine に分離している。これにより、v0.3 として必要な「音を持ち上げる」「二重再生を避ける」「Dev診断で状態を見る」は成立している。
 
 ## このPoCが検証すること
 
@@ -125,26 +125,28 @@ open "build/Build/Products/Debug/Hazakura Amp.app"
 普段の開発と単体テストは `Debug` / `Apple Development` 署名を使う。GitHub Release 前の手元確認は `Release` / `Developer ID Application` 署名の `build/Build/Products/Release/Hazakura Amp.app` を使う。外部配布する場合は、この Release 候補に対して notarization / staple を別工程で通してから配布する。
 
 初回起動時に **`NSAudioCaptureUsageDescription` の OS ダイアログ**が出るので「許可」する。  
-以降はメニューバーにアイコンが表示されるので、クリックしてポップオーバーを開き、「開始」を押す。操作UIは 0%〜400% スライダー、開始/停止、終了、Dev 診断に絞っている。Dev モードをONにすると capture buffer / render call / output gain / available frames / underrun / dropped frames / health / event log を確認できる。`Copy` で app version / build / signing kind / status / manual-start-required / health / recent events を含む診断スナップショットをクリップボードへコピーできる。
+以降はメニューバーにアイコンが表示される。アイコンは状態を表し、停止中は塗りなしの波・動作中は塗りありの波（200%超は波が1つ増える）で ON/OFF が一目でわかる。%の数値は表示せず、形だけで伝える。クリックしてポップオーバーを開き「開始」を押す。操作UIは 0%〜400% スライダー、開始/停止、終了、Dev 診断に絞っている。UIの表示文言は日本語が正（VoiceOver 用 accessibility ラベルは英語ベース）。Dev モードをONにすると キャプチャバッファ / レンダー呼び出し / 出力ゲイン / 利用可能フレーム / アンダーラン / ドロップフレーム / ヘルス / イベントログ を確認できる。ヘルスは OK=緑 / 注意=オレンジ / 警告=赤 で色分けする。「コピー」で app version / build / signing kind / status / manual-start-required / health / recent events を含む診断スナップショットをクリップボードへコピーできる。ポップオーバーはメニューバーアイコンが画面右端寄りのとき自動で左へ寄せて画面内に収まる（v0.3.1）。
 
 Hazakura Amp はシステム音をローカル処理して音量を持ち上げる。録音・保存・外部送信はしない。マイク権限も要求しない。
 
 ## 検証チェックリスト
 
-現在の v0.1 beta PoC で重点的に確認する手動チェック:
+現在の v0.3 で重点的に確認する手動チェック:
 
 ```
-[ ] YouTube 音声を取得できた（Start 直後から聴こえる）
+[ ] YouTube 音声を取得できた（開始 直後から聴こえる）
 [ ] 0% で音量を絞れる
 [ ] 100%（素通し）で原音と同等に聴こえる
 [ ] 200% / 400% で音量が明確に上がる
 [ ] 元音と加工後音が二重に鳴らない
 [ ] スライダーで 100% に戻せる
+[ ] メニューバーアイコンが停止中=塗りなし、動作中=塗りありで切り替わる
+[ ] アイコンが画面右端寄りでもポップオーバーが画面内に収まる
 [ ] アプリ終了で通常出力に戻る
-[ ] ⌘Q / Quit で gain=1.0 → stop の安全停止ログが出る
-[ ] スリープ前に 100% へ戻り、復帰後は自動復元または手動 Start で保存値へ戻る
+[ ] ⌘Q / 終了 で gain=1.0 → stop の安全停止ログが出る
+[ ] スリープ前に 100% へ戻り、復帰後は自動復元または手動 開始 で保存値へ戻る
 [ ] 強制終了後に OS 側に tap/routing が残らない
-[ ] 権限拒否でクラッシュしない（System Settings > Privacy & Security で拒否して再起動）
+[ ] 権限拒否でクラッシュしない（システム設定 > プライバシーとセキュリティ で拒否して再起動）
 [ ] マイク権限ダイアログが出ない
 [ ] レイテンシが許容範囲
 [ ] ブツ音・ノイズが常用不能なほど出ない
