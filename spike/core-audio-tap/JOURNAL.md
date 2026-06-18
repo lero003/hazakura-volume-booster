@@ -367,3 +367,11 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-amp"' --level info
   - `v0.3.0` タグを作成し、GitHub Release を **prerelease** として公開。zip アセットを添付
   - リリース URL: https://github.com/lero003/hazakura-amp/releases/tag/v0.3.0
   - 公証（notarization）は引き続き別工程
+- **2026-06-18（v0.3.1 リリース）**:
+  - メニューバーアイコンが画面右端寄りのとき、ポップオーバーが右へ見切れる問題を修正。`NSPopover` は位置指定APIを持たないため、表示後に内部ウィンドウ（`popover.contentViewController?.view.window`）の原点を直接補正し、画面 `visibleFrame` 内に収まるよう左へずらす（左端でクランプ）
+  - バージョン 0.3.1 (build 4) へバンプ。`testInfoPlistUsesV031ReleaseVersion` を追加
+  - README を日本語ファーストUI・状態別アイコン・ヘルス色分け・ポップオーバー位置補正に合わせて更新。v0.2 candidate / v0.1 beta / 旧IOProc残置の記述を現状に整合
+  - `RELEASE_NOTES_v0.3.1.md` を作成
+  - `./scripts/build_release_candidate.sh` で Developer ID Application 署名の Release ビルドが成功。`HazakuraAmp-v0.3.1-developer-id.zip` を生成
+  - `v0.3.1` タグを作成し、GitHub Release を **prerelease** として公開。zip アセットを添付
+  - リリース URL: https://github.com/lero003/hazakura-amp/releases/tag/v0.3.1
