@@ -354,7 +354,16 @@ log stream --predicate 'subsystem == "dev.keisetsu.hazakura-amp"' --level info
   - 単体テスト 41/41 pass、Debug build 成功
 - **2026-06-18（UI 製品レベル化）**:
   - 実装UI文字列を日本語に統一（`UI_DESIGN.md §8` を反転）。ボタン・見出し・状態メッセージ・診断ラベルを日本語化。accessibility ラベル（VoiceOver 用）は英語ベースを維持
-  - メニューバーアイコンを状態別に切替（`UI_DESIGN.md §1`）。停止中=`speaker.wave.2`、動作中 101-200%=`speaker.wave.2.fill`、201-400%=`speaker.wave.3.fill`。動作中は `Boost NNN%` を表示（100% は省略）。`RightClickableStatusButton` が `PoCAudioEngine` の `isRunning` / `configuredGain` を Combine で購読
+  - メニューバーアイコンを状態別に切替（`UI_DESIGN.md §1`）。停止中=`speaker.wave.2`（塗りなし）、動作中=`speaker.wave.2.fill`、201%以上=`speaker.wave.3.fill`。`RightClickableStatusButton` が `PoCAudioEngine` の `isRunning` / `configuredGain` を Combine で購読
   - ポップオーバーに最大高さ（560pt）を追加し、Dev 診断展開時に膨らみすぎないよう調整
   - Dev 診断のヘルス状態を OK=緑 / Watch=オレンジ / Warning=赤 で色分け
   - `testStatusPresentationGivesActionableMessagesForStoppedStates` を日本語期待値へ更新
+- **2026-06-18（メニューバー表示の整理）**:
+  - 一時的にメニューバーアイコン横へ `Boost NNN%` を表示していたが、三桁で崩れる・停止時に余分なスペースが入る等のガタつきが発生。%表示は廃止し、アイコンの形（塗りなし/塗りあり）だけで ON/OFF を明示する設計に落ち着いた。`statusItem` 幅は `squareLength`（固定）
+- **2026-06-18（v0.3.0 リリース）**:
+  - バージョン 0.3.0 (build 3) へバンプ。`testInfoPlistUsesV03ReleaseVersion` を追加
+  - `RELEASE_NOTES_v0.3.md` を作成
+  - `./scripts/build_release_candidate.sh` で Developer ID Application 署名の Release ビルドが成功。`HazakuraAmp-v0.3.0-developer-id.zip` を生成
+  - `v0.3.0` タグを作成し、GitHub Release を **prerelease** として公開。zip アセットを添付
+  - リリース URL: https://github.com/lero003/hazakura-amp/releases/tag/v0.3.0
+  - 公証（notarization）は引き続き別工程
