@@ -404,6 +404,37 @@ final class PoCAudioEngine: ObservableObject {
         """
     }
 
+    func applyRemoteCommand(_ command: HazakuraAmpRemoteCommand) {
+        switch command.kind {
+        case .setGain:
+            configuredGain = command.sanitizedGain
+            diagnosticLog.record(.info, "Remote gain set to \(command.sanitizedGain)x")
+        case .requestStart:
+            start()
+        case .requestState:
+            diagnosticLog.record(.info, "Remote state requested")
+        }
+    }
+
+    func applyRemoteCommandAsync(_ command: HazakuraAmpRemoteCommand) async {
+        switch command.kind {
+        case .setGain, .requestState:
+            applyRemoteCommand(command)
+        case .requestStart:
+            await startAsync()
+        }
+    }
+
+    func remoteState(now: Date = Date()) -> HazakuraAmpRemoteState {
+        HazakuraAmpRemoteState(
+            configuredGain: configuredGain,
+            isRunning: isRunning,
+            statusText: statusText,
+            lastError: lastError,
+            updatedAt: now
+        )
+    }
+
     // MARK: - Internals
 
     private func applyEffectiveGain() {

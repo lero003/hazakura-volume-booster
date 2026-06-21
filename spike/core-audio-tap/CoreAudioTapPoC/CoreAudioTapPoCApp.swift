@@ -23,6 +23,7 @@ final class CoreAudioTapPoCAppDelegate: NSObject, NSApplicationDelegate {
     private var wakeObserver: Any?
     private var screensWakeObserver: Any?
     private var lockFileDescriptor: CInt = -1
+    private var remoteControlBridge: HazakuraAmpRemoteControlBridge?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         if Self.isRunningUnderXCTest {
@@ -66,14 +67,28 @@ final class CoreAudioTapPoCAppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         engine.diagnosticLog.record(.info, "App lifecycle observers installed")
+        installRemoteControlBridge()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        remoteControlBridge?.stop()
+        remoteControlBridge = nil
         engine.shutdownForAppTermination()
         statusItemController?.invalidate()
         statusItemController = nil
         removeLifecycleObservers()
         releaseSingleInstanceLock()
+    }
+
+    private func installRemoteControlBridge() {
+        do {
+            let store = try HazakuraAmpRemoteControlStore.appGroupStore()
+            remoteControlBridge = HazakuraAmpRemoteControlBridge(store: store, engine: engine)
+            remoteControlBridge?.start()
+            engine.diagnosticLog.record(.info, "Remote control bridge started")
+        } catch {
+            engine.diagnosticLog.record(.warning, "Remote control bridge unavailable: \(error.localizedDescription)")
+        }
     }
 
     private func acquireSingleInstanceLock() -> Bool {

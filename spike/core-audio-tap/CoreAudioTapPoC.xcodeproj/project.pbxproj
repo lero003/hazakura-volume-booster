@@ -19,6 +19,7 @@
 		820F87B4B6A5FDBC25C80E88 /* PoCAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3A88977E7A0230B9C2AC21 /* PoCAudioEngine.swift */; };
 		A46FCE1B82E736A071D2A04A /* SystemTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0C5F93241ABD6887F72624 /* SystemTap.swift */; };
 		ACA555EA0C59784767F0B61B /* GainProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48113286D3D81C85926E534B /* GainProcessor.swift */; };
+		B1771D9B65F7E50A02F956B0 /* RemoteControlBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADA66ED14FCF17735673F36D /* RemoteControlBridge.swift */; };
 		B433514B574E664E99818003 /* RemoteControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F362B85C92EE57EE770C8007 /* RemoteControlStore.swift */; };
 		B856402762306E31CFE26563 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CCCCFCAE5A60085794F8D29 /* SwiftUI.framework */; };
 		C7E5A5C0A3835358699EEE79 /* CoreAudioTapPoCApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */; };
@@ -55,6 +56,7 @@
 		8CCCCFCAE5A60085794F8D29 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		98949F550182CA7404735FA3 /* Hazakura Amp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hazakura Amp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A13B80013E3A05C621D24159 /* ScreenCaptureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenCaptureKit.framework; path = System/Library/Frameworks/ScreenCaptureKit.framework; sourceTree = SDKROOT; };
+		ADA66ED14FCF17735673F36D /* RemoteControlBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteControlBridge.swift; sourceTree = "<group>"; };
 		CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreAudioTapPoCApp.swift; sourceTree = "<group>"; };
 		CFC83BDE9164A49918A01573 /* CoreAudioTapPoCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreAudioTapPoCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6DCF77F83A9EAB600C0A61E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 		AC0BD1E03D6E564A625E536E /* RemoteControl */ = {
 			isa = PBXGroup;
 			children = (
+				ADA66ED14FCF17735673F36D /* RemoteControlBridge.swift */,
 				27F7AA2F1744F88FC9CA5480 /* RemoteControlModels.swift */,
 				F362B85C92EE57EE770C8007 /* RemoteControlStore.swift */,
 			);
@@ -266,6 +269,7 @@
 				ACA555EA0C59784767F0B61B /* GainProcessor.swift in Sources */,
 				C8B92BAA758E1E271A303286 /* PCMFloatRingBuffer.swift in Sources */,
 				820F87B4B6A5FDBC25C80E88 /* PoCAudioEngine.swift in Sources */,
+				B1771D9B65F7E50A02F956B0 /* RemoteControlBridge.swift in Sources */,
 				D4C1EE76409896C7A0F018E8 /* RemoteControlModels.swift in Sources */,
 				B433514B574E664E99818003 /* RemoteControlStore.swift in Sources */,
 				0E93FD53E59E50292DF60970 /* ScreenCaptureAudioSource.swift in Sources */,

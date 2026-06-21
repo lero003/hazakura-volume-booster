@@ -461,6 +461,18 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(source.contains("NSApplication.shared.terminate(nil)"))
     }
 
+    func testAppDelegateInstallsRemoteControlBridge() throws {
+        let source = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/CoreAudioTapPoCApp.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("HazakuraAmpRemoteControlBridge"))
+        XCTAssertTrue(source.contains("HazakuraAmpRemoteControlStore.appGroupStore()"))
+        XCTAssertTrue(source.contains("remoteControlBridge?.start()"))
+        XCTAssertTrue(source.contains("remoteControlBridge?.stop()"))
+    }
+
     func testShutdownSafetyVerificationScriptChecksForTapResidue() throws {
         let source = try String(
             contentsOfFile: repositoryFile("spike/core-audio-tap/scripts/verify_shutdown_safety.sh"),
@@ -601,6 +613,62 @@ final class GainProcessorTests: XCTestCase {
 
         XCTAssertFalse(engine.isRunning)
         XCTAssertEqual(backend.startCount, 0)
+    }
+
+    @MainActor
+    func testRemoteSetGainCommandUpdatesConfiguredGain() {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+
+        engine.applyRemoteCommand(.setGain(2.4))
+
+        XCTAssertEqual(engine.configuredGain, 2.4, accuracy: 0.001)
+        XCTAssertFalse(engine.isRunning)
+    }
+
+    @MainActor
+    func testRemoteStartCommandStartsExistingPipeline() async {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+
+        await engine.applyRemoteCommandAsync(.requestStart())
+
+        XCTAssertTrue(backend.didStart)
+        XCTAssertTrue(engine.isRunning)
+    }
+
+    @MainActor
+    func testRemoteStateReflectsEngineStatus() {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+
+        engine.configuredGain = 1.7
+        let state = engine.remoteState(now: Date(timeIntervalSince1970: 1_800_000_000))
+
+        XCTAssertEqual(state.configuredGain, 1.7, accuracy: 0.001)
+        XCTAssertFalse(state.isRunning)
+        XCTAssertEqual(state.statusText, "idle")
+        XCTAssertNil(state.lastError)
+        XCTAssertEqual(state.updatedAt, Date(timeIntervalSince1970: 1_800_000_000))
+    }
+
+    @MainActor
+    func testRemoteControlBridgeDrainsCommandsAndPublishesState() async throws {
+        let backend = FakeAudioProcessingBackend()
+        let engine = PoCAudioEngine(audioBackend: backend, monitorsOutputDeviceChanges: false)
+        let store = HazakuraAmpRemoteControlStore(baseDirectory: temporaryDirectory())
+        let bridge = HazakuraAmpRemoteControlBridge(store: store, engine: engine)
+
+        try store.enqueue(.setGain(2.1))
+        try store.enqueue(.requestState())
+
+        try await bridge.processPendingCommands()
+
+        XCTAssertEqual(engine.configuredGain, 2.1, accuracy: 0.001)
+        XCTAssertTrue(try store.drainCommands().isEmpty)
+        let state = try XCTUnwrap(store.readState())
+        XCTAssertEqual(state.configuredGain, 2.1, accuracy: 0.001)
+        XCTAssertFalse(state.isRunning)
     }
 
     func testRemoteControlClampsGainCommands() throws {
