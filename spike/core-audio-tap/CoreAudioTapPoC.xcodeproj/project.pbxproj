@@ -19,6 +19,7 @@
 		820F87B4B6A5FDBC25C80E88 /* PoCAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3A88977E7A0230B9C2AC21 /* PoCAudioEngine.swift */; };
 		A46FCE1B82E736A071D2A04A /* SystemTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0C5F93241ABD6887F72624 /* SystemTap.swift */; };
 		ACA555EA0C59784767F0B61B /* GainProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48113286D3D81C85926E534B /* GainProcessor.swift */; };
+		B433514B574E664E99818003 /* RemoteControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F362B85C92EE57EE770C8007 /* RemoteControlStore.swift */; };
 		B856402762306E31CFE26563 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8CCCCFCAE5A60085794F8D29 /* SwiftUI.framework */; };
 		C7E5A5C0A3835358699EEE79 /* CoreAudioTapPoCApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */; };
 		C8B92BAA758E1E271A303286 /* PCMFloatRingBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E96416F64A88A5B5727022C /* PCMFloatRingBuffer.swift */; };
@@ -58,6 +59,7 @@
 		CFC83BDE9164A49918A01573 /* CoreAudioTapPoCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreAudioTapPoCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6DCF77F83A9EAB600C0A61E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EF3C6E79019E8469E02FB135 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		F362B85C92EE57EE770C8007 /* RemoteControlStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteControlStore.swift; sourceTree = "<group>"; };
 		F42BE1D410A43AB003B4625C /* ScreenCaptureAudioSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureAudioSource.swift; sourceTree = "<group>"; };
 		FEA3A39E29F33832EF563C75 /* AVFAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFAudio.framework; path = System/Library/Frameworks/AVFAudio.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -132,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				27F7AA2F1744F88FC9CA5480 /* RemoteControlModels.swift */,
+				F362B85C92EE57EE770C8007 /* RemoteControlStore.swift */,
 			);
 			path = RemoteControl;
 			sourceTree = "<group>";
@@ -264,6 +267,7 @@
 				C8B92BAA758E1E271A303286 /* PCMFloatRingBuffer.swift in Sources */,
 				820F87B4B6A5FDBC25C80E88 /* PoCAudioEngine.swift in Sources */,
 				D4C1EE76409896C7A0F018E8 /* RemoteControlModels.swift in Sources */,
+				B433514B574E664E99818003 /* RemoteControlStore.swift in Sources */,
 				0E93FD53E59E50292DF60970 /* ScreenCaptureAudioSource.swift in Sources */,
 				A46FCE1B82E736A071D2A04A /* SystemTap.swift in Sources */,
 			);

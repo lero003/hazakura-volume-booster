@@ -646,9 +646,45 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(state.isRunning)
     }
 
+    func testRemoteControlStorePersistsCommandsAndClearsInbox() throws {
+        let directory = temporaryDirectory()
+        let store = HazakuraAmpRemoteControlStore(baseDirectory: directory)
+
+        let command = HazakuraAmpRemoteCommand.setGain(1.6)
+        try store.enqueue(command)
+
+        let commands = try store.drainCommands()
+
+        XCTAssertEqual(commands, [command])
+        XCTAssertTrue(try store.drainCommands().isEmpty)
+    }
+
+    func testRemoteControlStoreWritesAndReadsState() throws {
+        let directory = temporaryDirectory()
+        let store = HazakuraAmpRemoteControlStore(baseDirectory: directory)
+        let state = HazakuraAmpRemoteState(
+            configuredGain: 1.8,
+            isRunning: false,
+            statusText: "stopped",
+            lastError: "System audio access was denied",
+            updatedAt: Date(timeIntervalSince1970: 1_800_000_000)
+        )
+
+        try store.writeState(state)
+
+        XCTAssertEqual(try store.readState(), state)
+    }
+
     private func loadInfoPlist() throws -> [String: Any] {
         let path = repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/Resources/Info.plist")
         return try XCTUnwrap(NSDictionary(contentsOfFile: path) as? [String: Any])
+    }
+
+    private func temporaryDirectory() -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
     }
 
     private func repositoryFile(_ relativePath: String) -> String {

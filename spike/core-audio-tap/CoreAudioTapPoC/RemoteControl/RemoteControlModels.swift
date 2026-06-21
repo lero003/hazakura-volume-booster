@@ -32,6 +32,13 @@ struct HazakuraAmpRemoteCommand: Codable, Equatable, Identifiable {
         guard gain.isFinite else { return 1.0 }
         return min(4.0, max(0.0, gain))
     }
+
+    static func == (lhs: HazakuraAmpRemoteCommand, rhs: HazakuraAmpRemoteCommand) -> Bool {
+        lhs.id == rhs.id &&
+            lhs.kind == rhs.kind &&
+            lhs.gain == rhs.gain &&
+            abs(lhs.createdAt.timeIntervalSince1970 - rhs.createdAt.timeIntervalSince1970) < 0.001
+    }
 }
 
 struct HazakuraAmpRemoteState: Codable, Equatable {
