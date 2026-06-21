@@ -1,0 +1,101 @@
+.hazakura-amp-floating-bar {
+  position: fixed;
+  right: 20px;
+  bottom: 92px;
+  z-index: 2147483647;
+  width: min(320px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  background: rgba(18, 19, 22, 0.92);
+  color: #f7f7f2;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  font: 12px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  backdrop-filter: blur(10px);
+}
+
+.hazakura-amp-header,
+.hazakura-amp-action-row,
+.hazakura-amp-boost-row {
+  display: flex;
+  align-items: center;
+}
+
+.hazakura-amp-header {
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.hazakura-amp-title {
+  font-weight: 700;
+}
+
+.hazakura-amp-controls {
+  display: grid;
+  gap: 8px;
+}
+
+.hazakura-amp-boost-row {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 1fr) 44px;
+  gap: 8px;
+}
+
+.hazakura-amp-boost-row input[type="range"] {
+  width: 100%;
+  accent-color: #9ecbff;
+}
+
+.hazakura-amp-boost-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.hazakura-amp-action-row {
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.hazakura-amp-icon-button,
+.hazakura-amp-repeat-button {
+  min-height: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.hazakura-amp-icon-button {
+  width: 28px;
+  padding: 0;
+}
+
+.hazakura-amp-repeat-button {
+  padding: 0 10px;
+}
+
+.hazakura-amp-repeat-button.is-on {
+  border-color: rgba(158, 203, 255, 0.8);
+  background: rgba(158, 203, 255, 0.2);
+}
+
+.hazakura-amp-status {
+  min-width: 0;
+  overflow: hidden;
+  color: rgba(247, 247, 242, 0.72);
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-collapsed .hazakura-amp-controls {
+  display: none;
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-collapsed {
+  width: auto;
+}

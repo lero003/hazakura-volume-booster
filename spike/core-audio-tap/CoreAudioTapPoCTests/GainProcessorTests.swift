@@ -473,6 +473,41 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(source.contains("remoteControlBridge?.stop()"))
     }
 
+    func testYouTubeRemoteExtensionManifestStaysNarrow() throws {
+        let manifest = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/YouTubeRemoteExtension/manifest.json"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(manifest.contains("\"manifest_version\": 3"))
+        XCTAssertTrue(manifest.contains("\"nativeMessaging\""))
+        XCTAssertTrue(manifest.contains("\"storage\""))
+        XCTAssertTrue(manifest.contains("\"*://*.youtube.com/*\""))
+        XCTAssertTrue(manifest.contains("\"content.js\""))
+        XCTAssertTrue(manifest.contains("\"content.css\""))
+        XCTAssertFalse(manifest.contains("<all_urls>"))
+    }
+
+    func testYouTubeRemoteContentScriptUsesOnlyRepeatAndRemoteControls() throws {
+        let source = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/YouTubeRemoteExtension/content.js"),
+            encoding: .utf8
+        )
+        let css = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/YouTubeRemoteExtension/content.css"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(source.contains("hazakura-amp-floating-bar"))
+        XCTAssertTrue(source.contains("video.loop = repeatEnabled"))
+        XCTAssertTrue(source.contains("setGain"))
+        XCTAssertTrue(source.contains("requestState"))
+        XCTAssertFalse(source.contains("AudioContext"))
+        XCTAssertFalse(source.contains("webkitAudioContext"))
+        XCTAssertFalse(source.contains("download"))
+        XCTAssertTrue(css.contains(".hazakura-amp-floating-bar"))
+    }
+
     func testShutdownSafetyVerificationScriptChecksForTapResidue() throws {
         let source = try String(
             contentsOfFile: repositoryFile("spike/core-audio-tap/scripts/verify_shutdown_safety.sh"),
