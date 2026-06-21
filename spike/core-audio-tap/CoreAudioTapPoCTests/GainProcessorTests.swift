@@ -508,6 +508,30 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(css.contains(".hazakura-amp-floating-bar"))
     }
 
+    func testSafariExtensionPackagingIsDeclared() throws {
+        let projectDefinition = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/project.yml"),
+            encoding: .utf8
+        )
+        let entitlements = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/Resources/HazakuraAmp.entitlements"),
+            encoding: .utf8
+        )
+        let handler = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/SafariWebExtensionHandler.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(projectDefinition.contains("HazakuraAmpSafariExtension"))
+        XCTAssertTrue(projectDefinition.contains("com.apple.Safari.web-extension"))
+        XCTAssertTrue(projectDefinition.contains("YouTubeRemoteExtension"))
+        XCTAssertTrue(projectDefinition.contains("embed: true"))
+        XCTAssertTrue(entitlements.contains("group.dev.keisetsu.hazakura-amp"))
+        XCTAssertTrue(handler.contains("NSExtensionRequestHandling"))
+        XCTAssertTrue(handler.contains("SFExtensionMessageKey"))
+        XCTAssertTrue(handler.contains("HazakuraAmpRemoteControlStore.appGroupStore()"))
+    }
+
     func testShutdownSafetyVerificationScriptChecksForTapResidue() throws {
         let source = try String(
             contentsOfFile: repositoryFile("spike/core-audio-tap/scripts/verify_shutdown_safety.sh"),

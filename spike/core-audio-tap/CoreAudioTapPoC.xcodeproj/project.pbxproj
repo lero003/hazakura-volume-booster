@@ -12,10 +12,16 @@
 		0E840654ABCED869BD979E08 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A1BCDA89A4F5624B815AC3B /* CoreMedia.framework */; };
 		0E93FD53E59E50292DF60970 /* ScreenCaptureAudioSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42BE1D410A43AB003B4625C /* ScreenCaptureAudioSource.swift */; };
 		1055AB75D5205CC47CE70D11 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6FA550582B0E3A797D8D7783 /* AppKit.framework */; };
+		1DF23543EB24C7A8A9C11174 /* SafariServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC6E69CB5C63775AFD51E04C /* SafariServices.framework */; };
+		3220F3019CEC171B6ACDF893 /* Hazakura Amp Safari Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 9BED27378A8DFCC0EEF69265 /* Hazakura Amp Safari Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		33625A05D07738BEC3AF82C2 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1E9797A36309708715328917 /* CoreAudio.framework */; };
 		37E51B4C9288E0822740440E /* ScreenCaptureKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13B80013E3A05C621D24159 /* ScreenCaptureKit.framework */; };
+		435542C907DB060CFDDB284B /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AF5B9B4DEFC8354A8D7A78E /* SafariWebExtensionHandler.swift */; };
 		55A2BF73A6667A6D153E44F8 /* BoostAudioPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5695216ABEC67D6B415956DA /* BoostAudioPipeline.swift */; };
+		56C5220DBCDE26AA9400A3D3 /* RemoteControlStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F362B85C92EE57EE770C8007 /* RemoteControlStore.swift */; };
+		6274A79DC8BBEAEBA2F2A76E /* RemoteControlModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27F7AA2F1744F88FC9CA5480 /* RemoteControlModels.swift */; };
 		66861DB022A85E87E8A2D8C4 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6DCF77F83A9EAB600C0A61E /* ContentView.swift */; };
+		6E570AA996A8C78437C4E8A4 /* HazakuraAmpSafariExtension-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0D4F62AA30E04128467466E8 /* HazakuraAmpSafariExtension-Info.plist */; };
 		820F87B4B6A5FDBC25C80E88 /* PoCAudioEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C3A88977E7A0230B9C2AC21 /* PoCAudioEngine.swift */; };
 		A46FCE1B82E736A071D2A04A /* SystemTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E0C5F93241ABD6887F72624 /* SystemTap.swift */; };
 		ACA555EA0C59784767F0B61B /* GainProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 48113286D3D81C85926E534B /* GainProcessor.swift */; };
@@ -38,10 +44,32 @@
 			remoteGlobalIDString = AC15BDF8B3DCF02AA9A1C856;
 			remoteInfo = CoreAudioTapPoC;
 		};
+		6CA5469115C32700D4EBD109 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 57EB2C45A4BFC78F2063A575 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 137A5BCAF302A6C1B708C887;
+			remoteInfo = HazakuraAmpSafariExtension;
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		DFA3ED2B4EFB634CB2F08B60 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3220F3019CEC171B6ACDF893 /* Hazakura Amp Safari Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		021A18CF6A5C9865BD2336A2 /* GainProcessorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GainProcessorTests.swift; sourceTree = "<group>"; };
+		0D4F62AA30E04128467466E8 /* HazakuraAmpSafariExtension-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "HazakuraAmpSafariExtension-Info.plist"; sourceTree = "<group>"; };
 		1E0C5F93241ABD6887F72624 /* SystemTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemTap.swift; sourceTree = "<group>"; };
 		1E96416F64A88A5B5727022C /* PCMFloatRingBuffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PCMFloatRingBuffer.swift; sourceTree = "<group>"; };
 		1E9797A36309708715328917 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
@@ -53,9 +81,12 @@
 		4A1BCDA89A4F5624B815AC3B /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		5695216ABEC67D6B415956DA /* BoostAudioPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoostAudioPipeline.swift; sourceTree = "<group>"; };
 		6FA550582B0E3A797D8D7783 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		7AF5B9B4DEFC8354A8D7A78E /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
 		8CCCCFCAE5A60085794F8D29 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		98949F550182CA7404735FA3 /* Hazakura Amp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Hazakura Amp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BED27378A8DFCC0EEF69265 /* Hazakura Amp Safari Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Hazakura Amp Safari Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A13B80013E3A05C621D24159 /* ScreenCaptureKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScreenCaptureKit.framework; path = System/Library/Frameworks/ScreenCaptureKit.framework; sourceTree = SDKROOT; };
+		AC6E69CB5C63775AFD51E04C /* SafariServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SafariServices.framework; path = System/Library/Frameworks/SafariServices.framework; sourceTree = SDKROOT; };
 		ADA66ED14FCF17735673F36D /* RemoteControlBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteControlBridge.swift; sourceTree = "<group>"; };
 		CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreAudioTapPoCApp.swift; sourceTree = "<group>"; };
 		CFC83BDE9164A49918A01573 /* CoreAudioTapPoCTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CoreAudioTapPoCTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -67,6 +98,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		64F55C8A2DC9CAAE7D60F609 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1DF23543EB24C7A8A9C11174 /* SafariServices.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9E5A6FB0B92C0EB489A777B4 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -111,11 +150,21 @@
 			children = (
 				05DB9F49BE6DBDEC3144029D /* Audio */,
 				AC0BD1E03D6E564A625E536E /* RemoteControl */,
+				31170A0FB3C681B3788FD5FC /* Resources */,
 				486F0A1566A640CD2E6101AE /* Assets.xcassets */,
 				D6DCF77F83A9EAB600C0A61E /* ContentView.swift */,
 				CC7E1104E763F3A362FA4ECB /* CoreAudioTapPoCApp.swift */,
+				7AF5B9B4DEFC8354A8D7A78E /* SafariWebExtensionHandler.swift */,
 			);
 			path = CoreAudioTapPoC;
+			sourceTree = "<group>";
+		};
+		31170A0FB3C681B3788FD5FC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				0D4F62AA30E04128467466E8 /* HazakuraAmpSafariExtension-Info.plist */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		54CEA0EFD4EA9784859B45B1 /* Frameworks */ = {
@@ -126,6 +175,7 @@
 				FEA3A39E29F33832EF563C75 /* AVFAudio.framework */,
 				1E9797A36309708715328917 /* CoreAudio.framework */,
 				4A1BCDA89A4F5624B815AC3B /* CoreMedia.framework */,
+				AC6E69CB5C63775AFD51E04C /* SafariServices.framework */,
 				A13B80013E3A05C621D24159 /* ScreenCaptureKit.framework */,
 				8CCCCFCAE5A60085794F8D29 /* SwiftUI.framework */,
 			);
@@ -156,6 +206,7 @@
 			isa = PBXGroup;
 			children = (
 				CFC83BDE9164A49918A01573 /* CoreAudioTapPoCTests.xctest */,
+				9BED27378A8DFCC0EEF69265 /* Hazakura Amp Safari Extension.appex */,
 				98949F550182CA7404735FA3 /* Hazakura Amp.app */,
 			);
 			name = Products;
@@ -164,6 +215,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		137A5BCAF302A6C1B708C887 /* HazakuraAmpSafariExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 65CC5DFC61B07175C556B1F2 /* Build configuration list for PBXNativeTarget "HazakuraAmpSafariExtension" */;
+			buildPhases = (
+				6499C0C3EC3D550B39906A7B /* Sources */,
+				64F55C8A2DC9CAAE7D60F609 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HazakuraAmpSafariExtension;
+			packageProductDependencies = (
+			);
+			productName = HazakuraAmpSafariExtension;
+			productReference = 9BED27378A8DFCC0EEF69265 /* Hazakura Amp Safari Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		AC15BDF8B3DCF02AA9A1C856 /* CoreAudioTapPoC */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D5CABE97402A7161366C8EAE /* Build configuration list for PBXNativeTarget "CoreAudioTapPoC" */;
@@ -171,10 +240,12 @@
 				D367AA61E5A36E26D86F0828 /* Sources */,
 				4A41CFFFF585B6498DF14FD3 /* Resources */,
 				9E5A6FB0B92C0EB489A777B4 /* Frameworks */,
+				DFA3ED2B4EFB634CB2F08B60 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				437E15949E367C616D3E425D /* PBXTargetDependency */,
 			);
 			name = CoreAudioTapPoC;
 			packageProductDependencies = (
@@ -210,6 +281,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					137A5BCAF302A6C1B708C887 = {
+						DevelopmentTeam = 8BNUB2R9C8;
+					};
 					AC15BDF8B3DCF02AA9A1C856 = {
 						DevelopmentTeam = 8BNUB2R9C8;
 					};
@@ -234,6 +308,7 @@
 			targets = (
 				AC15BDF8B3DCF02AA9A1C856 /* CoreAudioTapPoC */,
 				D042BE01F8C702AAC576F42E /* CoreAudioTapPoCTests */,
+				137A5BCAF302A6C1B708C887 /* HazakuraAmpSafariExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -244,12 +319,23 @@
 			buildActionMask = 2147483647;
 			files = (
 				0747C5D79879AF5A3E8F6A70 /* Assets.xcassets in Resources */,
+				6E570AA996A8C78437C4E8A4 /* HazakuraAmpSafariExtension-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		6499C0C3EC3D550B39906A7B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6274A79DC8BBEAEBA2F2A76E /* RemoteControlModels.swift in Sources */,
+				56C5220DBCDE26AA9400A3D3 /* RemoteControlStore.swift in Sources */,
+				435542C907DB060CFDDB284B /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		68398722023B18DE560F8BCE /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -280,6 +366,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		437E15949E367C616D3E425D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 137A5BCAF302A6C1B708C887 /* HazakuraAmpSafariExtension */;
+			targetProxy = 6CA5469115C32700D4EBD109 /* PBXContainerItemProxy */;
+		};
 		9097627E104333FFDCB3C087 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AC15BDF8B3DCF02AA9A1C856 /* CoreAudioTapPoC */;
@@ -288,6 +379,26 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0345088299921BFEDEF7B594 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CoreAudioTapPoC/Resources/HazakuraAmp.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.keisetsu.hazakura-amp.safari-extension";
+				PRODUCT_MODULE_NAME = HazakuraAmpSafariExtension;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
 		085DB0D7F1E274C1D737B921 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -504,6 +615,26 @@
 			};
 			name = Debug;
 		};
+		FA575096709D3B15BE055754 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CoreAudioTapPoC/Resources/HazakuraAmp.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.keisetsu.hazakura-amp.safari-extension";
+				PRODUCT_MODULE_NAME = HazakuraAmpSafariExtension;
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -521,6 +652,15 @@
 			buildConfigurations = (
 				F1310BF78BC3849B554AD1D8 /* Debug */,
 				3F6D2F5625793BB2E4514788 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		65CC5DFC61B07175C556B1F2 /* Build configuration list for PBXNativeTarget "HazakuraAmpSafariExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0345088299921BFEDEF7B594 /* Debug */,
+				FA575096709D3B15BE055754 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

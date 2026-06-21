@@ -39,6 +39,7 @@ targets:
         excludes:
           - "Resources/Info.plist"
           - "Resources/HazakuraAmp.entitlements"
+          - "SafariWebExtensionHandler.swift"
     resources:
       - path: CoreAudioTapPoC/Resources/Info.plist
         buildPhase: none
@@ -55,6 +56,9 @@ targets:
         HazakuraSigningKind: "$(CODE_SIGN_IDENTITY)"
     entitlements:
       path: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.keisetsu.hazakura-amp
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: dev.keisetsu.hazakura-amp
@@ -68,6 +72,8 @@ targets:
         SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
         GCC_TREAT_WARNINGS_AS_ERRORS: NO
     dependencies:
+      - target: HazakuraAmpSafariExtension
+        embed: true
       - sdk: AudioToolbox.framework
       - sdk: AVFAudio.framework
       - sdk: CoreAudio.framework
@@ -75,6 +81,41 @@ targets:
       - sdk: ScreenCaptureKit.framework
       - sdk: AppKit.framework
       - sdk: SwiftUI.framework
+
+  HazakuraAmpSafariExtension:
+    type: app-extension
+    platform: macOS
+    deploymentTarget: "26.0"
+    productName: "Hazakura Amp Safari Extension"
+    sources:
+      - path: CoreAudioTapPoC/RemoteControl/RemoteControlModels.swift
+      - path: CoreAudioTapPoC/RemoteControl/RemoteControlStore.swift
+      - path: CoreAudioTapPoC/SafariWebExtensionHandler.swift
+    resources:
+      - path: YouTubeRemoteExtension
+    info:
+      path: CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension-Info.plist
+      properties:
+        CFBundleDisplayName: "Hazakura Amp Safari Extension"
+        CFBundleShortVersionString: "0.3.1"
+        CFBundleVersion: "4"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.Safari.web-extension
+          NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).SafariWebExtensionHandler"
+    entitlements:
+      path: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.dev.keisetsu.hazakura-amp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.keisetsu.hazakura-amp.safari-extension
+        PRODUCT_MODULE_NAME: HazakuraAmpSafariExtension
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
+        SKIP_INSTALL: YES
+    dependencies:
+      - sdk: SafariServices.framework
 
   CoreAudioTapPoCTests:
     type: bundle.unit-test

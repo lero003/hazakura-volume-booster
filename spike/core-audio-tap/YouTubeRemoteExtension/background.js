@@ -29,7 +29,13 @@ runtimeApi.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   sendNativeMessage(message.payload)
-    .then((reply) => sendResponse({ ok: true, reply }))
+    .then((reply) => {
+      if (reply?.ok === false) {
+        sendResponse({ ok: false, error: reply.error || "Hazakura Amp is not ready" });
+        return;
+      }
+      sendResponse({ ok: true, reply });
+    })
     .catch((error) => sendResponse({ ok: false, error: error.message }));
   return true;
 });
