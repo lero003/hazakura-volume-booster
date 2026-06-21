@@ -1,6 +1,6 @@
 name: CoreAudioTapPoC
 options:
-  bundleIdPrefix: dev.keisetsu.hazakura-amp
+  bundleIdPrefix: dev.hazakura-amp
   deploymentTarget:
     macOS: "26.0"
   createIntermediateGroups: true
@@ -54,19 +54,22 @@ targets:
         CFBundleShortVersionString: "0.3.1"
         CFBundleVersion: "4"
         HazakuraSigningKind: "$(CODE_SIGN_IDENTITY)"
+        SFSafariWebExtensionConverterVersion: "26.5"
     entitlements:
       path: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
       properties:
+        com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
-          - group.dev.keisetsu.hazakura-amp
+          - group.dev.hazakura-amp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.keisetsu.hazakura-amp
+        PRODUCT_BUNDLE_IDENTIFIER: dev.hazakura-amp
         PRODUCT_NAME: "Hazakura Amp"
         PRODUCT_MODULE_NAME: CoreAudioTapPoC
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: NO
         CODE_SIGN_ENTITLEMENTS: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
+        ENABLE_APP_SANDBOX: YES
         ENABLE_HARDENED_RUNTIME: YES
         DEAD_CODE_STRIPPING: YES
         SWIFT_TREAT_WARNINGS_AS_ERRORS: NO
@@ -91,8 +94,17 @@ targets:
       - path: CoreAudioTapPoC/RemoteControl/RemoteControlModels.swift
       - path: CoreAudioTapPoC/RemoteControl/RemoteControlStore.swift
       - path: CoreAudioTapPoC/SafariWebExtensionHandler.swift
-    resources:
-      - path: YouTubeRemoteExtension
+      - path: YouTubeRemoteExtension/manifest.json
+        buildPhase: resources
+      - path: YouTubeRemoteExtension/background.js
+        buildPhase: resources
+      - path: YouTubeRemoteExtension/content.js
+        buildPhase: resources
+      - path: YouTubeRemoteExtension/content.css
+        buildPhase: resources
+      - path: YouTubeRemoteExtension/images
+        type: folder
+        buildPhase: resources
     info:
       path: CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension-Info.plist
       properties:
@@ -103,16 +115,18 @@ targets:
           NSExtensionPointIdentifier: com.apple.Safari.web-extension
           NSExtensionPrincipalClass: "$(PRODUCT_MODULE_NAME).SafariWebExtensionHandler"
     entitlements:
-      path: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
+      path: CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension.entitlements
       properties:
+        com.apple.security.app-sandbox: true
         com.apple.security.application-groups:
-          - group.dev.keisetsu.hazakura-amp
+          - group.dev.hazakura-amp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.keisetsu.hazakura-amp.safari-extension
+        PRODUCT_BUNDLE_IDENTIFIER: dev.hazakura-amp.safari-extension
         PRODUCT_MODULE_NAME: HazakuraAmpSafariExtension
         GENERATE_INFOPLIST_FILE: NO
-        CODE_SIGN_ENTITLEMENTS: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements
+        CODE_SIGN_ENTITLEMENTS: CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension.entitlements
+        ENABLE_APP_SANDBOX: YES
         SKIP_INSTALL: YES
     dependencies:
       - sdk: SafariServices.framework
@@ -125,7 +139,7 @@ targets:
       - path: CoreAudioTapPoCTests
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: dev.keisetsu.hazakura-amp.tests
+        PRODUCT_BUNDLE_IDENTIFIER: dev.hazakura-amp.tests
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Hazakura Amp.app/Contents/MacOS/Hazakura Amp"
         BUNDLE_LOADER: "$(TEST_HOST)"

@@ -93,7 +93,7 @@ final class CoreAudioTapPoCAppDelegate: NSObject, NSApplicationDelegate {
 
     private func acquireSingleInstanceLock() -> Bool {
         let lockPath = (NSTemporaryDirectory() as NSString)
-            .appendingPathComponent("dev.keisetsu.hazakura-amp.lock")
+            .appendingPathComponent("dev.hazakura-amp.lock")
         let descriptor = open(lockPath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
         guard descriptor >= 0 else {
             engine.diagnosticLog.record(.warning, "Could not create single-instance lock; continuing without lock")

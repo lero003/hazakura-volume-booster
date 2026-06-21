@@ -120,7 +120,7 @@ final class GainProcessorTests: XCTestCase {
             encoding: .utf8
         )
 
-        XCTAssertTrue(projectDefinition.contains("PRODUCT_BUNDLE_IDENTIFIER: dev.keisetsu.hazakura-amp"))
+        XCTAssertTrue(projectDefinition.contains("PRODUCT_BUNDLE_IDENTIFIER: dev.hazakura-amp"))
         XCTAssertTrue(projectDefinition.contains("CODE_SIGN_ENTITLEMENTS: CoreAudioTapPoC/Resources/HazakuraAmp.entitlements"))
         XCTAssertFalse(projectDefinition.contains("dev.keisetsu.hazakura-volume-booster"))
         XCTAssertFalse(projectDefinition.contains("CoreAudioTapPoC.entitlements"))
@@ -158,6 +158,50 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertFalse(source.contains("Button(\"100%\""))
         XCTAssertFalse(source.contains("Button(\"200%\""))
         XCTAssertFalse(source.contains("Button(\"400%\""))
+    }
+
+    func testAppCanOpenAndInspectSafariExtensionSettings() throws {
+        let support = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/SafariExtensionSupport.swift"),
+            encoding: .utf8
+        )
+        let contentView = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/ContentView.swift"),
+            encoding: .utf8
+        )
+
+        XCTAssertTrue(support.contains("import SafariServices"))
+        XCTAssertTrue(support.contains("dev.hazakura-amp.safari-extension"))
+        XCTAssertTrue(support.contains("SFSafariExtensionManager.perform"))
+        XCTAssertTrue(support.contains("SFSafariApplication.showPreferencesForExtension"))
+        XCTAssertTrue(support.contains("isEnabled"))
+        XCTAssertTrue(support.contains("private enum SafariExtensionStatusClient"))
+        XCTAssertTrue(support.contains("NSSelectorFromString(\"getStateOfSafariExtensionWithIdentifier:completionHandler:\")"))
+        XCTAssertTrue(support.contains("@convention(block) (SFSafariExtensionState?, NSError?) -> Void"))
+        XCTAssertTrue(support.contains("static let extensionBundleIdentifier"))
+        XCTAssertTrue(support.contains("static func getExtensionState"))
+        XCTAssertTrue(support.contains("static func showExtensionPreferences"))
+        XCTAssertTrue(support.contains("@escaping @Sendable"))
+        XCTAssertTrue(support.contains("DispatchQueue.main.async"))
+        XCTAssertTrue(contentView.contains("SafariExtensionDiagnosticsView"))
+        XCTAssertTrue(contentView.contains("SetupChecklistView"))
+        XCTAssertTrue(contentView.contains("GroupBox(\"初回セットアップ\")"))
+        XCTAssertTrue(contentView.contains("Safari 拡張"))
+        XCTAssertTrue(contentView.contains("音声取得"))
+        XCTAssertTrue(contentView.contains("Button(\"状態を確認\")"))
+        XCTAssertTrue(contentView.contains("controller.refreshState()"))
+        XCTAssertTrue(contentView.contains("Button(\"拡張設定を開く\")"))
+        XCTAssertTrue(contentView.contains("controller.openPreferences()"))
+    }
+
+    @MainActor
+    func testSafariExtensionStateRefreshReturnsThroughMainActor() async throws {
+        let controller = SafariExtensionController()
+
+        controller.refreshState()
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+
+        XCTAssertNotEqual(controller.statusText, "確認中")
     }
 
     func testStatusPresentationGivesActionableMessagesForStoppedStates() {
@@ -377,11 +421,11 @@ final class GainProcessorTests: XCTestCase {
     func testSystemTapDescriptionMutesOtherProcessesButExcludesThisApp() {
         let description = SystemTap.makeTapDescription(
             deviceUID: "test-output-device",
-            excludingBundleID: "dev.keisetsu.hazakura-amp"
+            excludingBundleID: "dev.hazakura-amp"
         )
 
         XCTAssertEqual(description.deviceUID, "test-output-device")
-        XCTAssertEqual(description.bundleIDs, ["dev.keisetsu.hazakura-amp"])
+        XCTAssertEqual(description.bundleIDs, ["dev.hazakura-amp"])
         XCTAssertTrue(description.isExclusive)
         XCTAssertEqual(description.muteBehavior, .muted)
         XCTAssertTrue(description.isMixdown)
@@ -483,6 +527,9 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertTrue(manifest.contains("\"nativeMessaging\""))
         XCTAssertTrue(manifest.contains("\"storage\""))
         XCTAssertTrue(manifest.contains("\"*://*.youtube.com/*\""))
+        XCTAssertTrue(manifest.contains("\"icons\""))
+        XCTAssertTrue(manifest.contains("\"default_icon\""))
+        XCTAssertTrue(manifest.contains("\"images/icon-48.png\""))
         XCTAssertTrue(manifest.contains("\"content.js\""))
         XCTAssertTrue(manifest.contains("\"content.css\""))
         XCTAssertFalse(manifest.contains("<all_urls>"))
@@ -499,6 +546,13 @@ final class GainProcessorTests: XCTestCase {
         )
 
         XCTAssertTrue(source.contains("hazakura-amp-floating-bar"))
+        XCTAssertTrue(source.contains("hazakuraAmpPosition"))
+        XCTAssertTrue(source.contains("clampPosition"))
+        XCTAssertTrue(source.contains("setPointerCapture"))
+        XCTAssertTrue(source.contains("boostPresets = [100, 150, 200, 300, 400]"))
+        XCTAssertTrue(source.contains("staleStateThresholdMs"))
+        XCTAssertTrue(source.contains("App disconnected"))
+        XCTAssertTrue(source.contains("High boost may clip loud sources."))
         XCTAssertTrue(source.contains("video.loop = repeatEnabled"))
         XCTAssertTrue(source.contains("setGain"))
         XCTAssertTrue(source.contains("requestState"))
@@ -506,6 +560,12 @@ final class GainProcessorTests: XCTestCase {
         XCTAssertFalse(source.contains("webkitAudioContext"))
         XCTAssertFalse(source.contains("download"))
         XCTAssertTrue(css.contains(".hazakura-amp-floating-bar"))
+        XCTAssertTrue(css.contains("top: 84px"))
+        XCTAssertTrue(css.contains(".hazakura-amp-floating-bar.hazakura-amp-dragging"))
+        XCTAssertTrue(css.contains(".hazakura-amp-preset-row"))
+        XCTAssertTrue(css.contains(".hazakura-amp-floating-bar.hazakura-amp-high-boost"))
+        XCTAssertTrue(css.contains(".hazakura-amp-floating-bar.hazakura-amp-disconnected"))
+        XCTAssertTrue(css.contains("@media (max-width: 640px)"))
     }
 
     func testSafariExtensionPackagingIsDeclared() throws {
@@ -513,8 +573,16 @@ final class GainProcessorTests: XCTestCase {
             contentsOfFile: repositoryFile("spike/core-audio-tap/project.yml"),
             encoding: .utf8
         )
+        let generatedProject = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC.xcodeproj/project.pbxproj"),
+            encoding: .utf8
+        )
         let entitlements = try String(
             contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/Resources/HazakuraAmp.entitlements"),
+            encoding: .utf8
+        )
+        let extensionEntitlements = try String(
+            contentsOfFile: repositoryFile("spike/core-audio-tap/CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension.entitlements"),
             encoding: .utf8
         )
         let handler = try String(
@@ -524,12 +592,25 @@ final class GainProcessorTests: XCTestCase {
 
         XCTAssertTrue(projectDefinition.contains("HazakuraAmpSafariExtension"))
         XCTAssertTrue(projectDefinition.contains("com.apple.Safari.web-extension"))
+        XCTAssertTrue(projectDefinition.contains("SFSafariWebExtensionConverterVersion"))
         XCTAssertTrue(projectDefinition.contains("YouTubeRemoteExtension"))
         XCTAssertTrue(projectDefinition.contains("embed: true"))
-        XCTAssertTrue(entitlements.contains("group.dev.keisetsu.hazakura-amp"))
+        XCTAssertTrue(generatedProject.contains("manifest.json in Resources"))
+        XCTAssertTrue(generatedProject.contains("background.js in Resources"))
+        XCTAssertTrue(generatedProject.contains("content.js in Resources"))
+        XCTAssertTrue(generatedProject.contains("content.css in Resources"))
+        XCTAssertTrue(projectDefinition.contains("type: folder"))
+        XCTAssertTrue(generatedProject.contains("images in Resources"))
+        XCTAssertTrue(entitlements.contains("group.dev.hazakura-amp"))
+        XCTAssertTrue(entitlements.contains("com.apple.security.app-sandbox"))
+        XCTAssertTrue(extensionEntitlements.contains("group.dev.hazakura-amp"))
+        XCTAssertTrue(extensionEntitlements.contains("com.apple.security.app-sandbox"))
+        XCTAssertTrue(projectDefinition.contains("CODE_SIGN_ENTITLEMENTS: CoreAudioTapPoC/Resources/HazakuraAmpSafariExtension.entitlements"))
         XCTAssertTrue(handler.contains("NSExtensionRequestHandling"))
         XCTAssertTrue(handler.contains("SFExtensionMessageKey"))
         XCTAssertTrue(handler.contains("HazakuraAmpRemoteControlStore.appGroupStore()"))
+        XCTAssertTrue(handler.contains("\"updatedAt\""))
+        XCTAssertTrue(handler.contains("state?.updatedAt.timeIntervalSince1970"))
     }
 
     func testShutdownSafetyVerificationScriptChecksForTapResidue() throws {

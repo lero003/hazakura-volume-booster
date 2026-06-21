@@ -118,7 +118,7 @@ final class PoCAudioEngine: ObservableObject {
 
     // MARK: - Internals
 
-    private let log = Logger(subsystem: "dev.keisetsu.hazakura-amp", category: "PoCAudioEngine")
+    private let log = Logger(subsystem: "dev.hazakura-amp", category: "PoCAudioEngine")
     private let audioBackend: any AudioProcessingBackend
     private let backendFailureRelay: BackendFailureRelay
     private let outputDeviceMonitor = DefaultOutputDeviceMonitor()

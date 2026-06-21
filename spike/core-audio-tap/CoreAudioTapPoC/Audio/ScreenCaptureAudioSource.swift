@@ -13,7 +13,7 @@ final class ScreenCaptureAudioSource: NSObject, SCStreamOutput, SCStreamDelegate
     private let meter: AudioBackendMeter
     private let diagnosticLog: DiagnosticLogStore
     private let onStoppedWithError: (@Sendable (String) -> Void)?
-    private let sampleQueue = DispatchQueue(label: "dev.keisetsu.hazakura-amp.screen-audio")
+    private let sampleQueue = DispatchQueue(label: "dev.hazakura-amp.screen-audio")
     private var stream: SCStream?
     private var hasReportedUnsupportedFormat = false
 

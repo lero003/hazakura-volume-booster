@@ -25,7 +25,7 @@ struct HazakuraAmpRemoteControlStore {
     }
 
     static func appGroupStore() throws -> HazakuraAmpRemoteControlStore {
-        guard let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.keisetsu.hazakura-amp") else {
+        guard let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.hazakura-amp") else {
             throw CocoaError(.fileNoSuchFile)
         }
         return HazakuraAmpRemoteControlStore(baseDirectory: url.appendingPathComponent("RemoteControl", isDirectory: true))

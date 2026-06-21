@@ -31,7 +31,7 @@ import os.log
 /// SystemTap は PoCAudioEngine から単一スレッド（通常はバックグラウンド）で操作される。
 /// 内部状態は単一の呼び出し元からしか触られないため @unchecked Sendable とする。
 final class SystemTap: SystemTapControlling, @unchecked Sendable {
-    private let log = Logger(subsystem: "dev.keisetsu.hazakura-amp", category: "SystemTap")
+    private let log = Logger(subsystem: "dev.hazakura-amp", category: "SystemTap")
     private let diagnosticLog: DiagnosticLogStore
 
     private(set) var tapID: AudioObjectID = kAudioObjectUnknown
@@ -41,8 +41,8 @@ final class SystemTap: SystemTapControlling, @unchecked Sendable {
     private(set) var originalDefaultOutputID: AudioObjectID = kAudioObjectUnknown
 
     /// tap 名。実運用では Bundle Identifier を含めて他アプリと被らないようにする。
-    private let tapName = "dev.keisetsu.hazakura-amp.tap"
-    private let aggregateName = "dev.keisetsu.hazakura-amp.aggregate"
+    private let tapName = "dev.hazakura-amp.tap"
+    private let aggregateName = "dev.hazakura-amp.aggregate"
 
     // MARK: - Public
 

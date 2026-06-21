@@ -80,6 +80,7 @@ struct BoostStatusPresentation: Equatable {
 
 struct ContentView: View {
     @ObservedObject private var engine: PoCAudioEngine
+    @StateObject private var safariExtensionController = SafariExtensionController()
     @State private var isShowingDevMode = false
 
     init(engine: PoCAudioEngine) {
@@ -155,6 +156,7 @@ struct ContentView: View {
                     latestBufferFrameCount: engine.latestBufferFrameCount,
                     health: engine.backendHealth,
                     isRunning: engine.isRunning,
+                    safariExtensionController: safariExtensionController,
                     logStore: engine.diagnosticLog,
                     diagnosticSnapshot: engine.diagnosticSnapshotText()
                 )
@@ -366,11 +368,18 @@ struct DevDiagnosticsView: View {
     let latestBufferFrameCount: Int
     let health: AudioBackendHealthAssessment
     let isRunning: Bool
+    @ObservedObject var safariExtensionController: SafariExtensionController
     @ObservedObject var logStore: DiagnosticLogStore
     let diagnosticSnapshot: String
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            SetupChecklistView(
+                isRunning: isRunning,
+                captureBufferCount: captureBufferCount,
+                safariExtensionEnabled: safariExtensionController.isEnabled
+            )
+
             DiagnosticsView(
                 captureBufferCount: captureBufferCount,
                 renderCallCount: renderCallCount,
@@ -382,6 +391,8 @@ struct DevDiagnosticsView: View {
                 health: health,
                 isRunning: isRunning
             )
+
+            SafariExtensionDiagnosticsView(controller: safariExtensionController)
 
             HStack {
                 Text("イベントログ")
@@ -424,6 +435,133 @@ struct DevDiagnosticsView: View {
     }
 }
 
+private struct SetupChecklistView: View {
+    let isRunning: Bool
+    let captureBufferCount: UInt64
+    let safariExtensionEnabled: Bool?
+
+    var body: some View {
+        GroupBox("初回セットアップ") {
+            VStack(alignment: .leading, spacing: 4) {
+                row(
+                    title: "本体",
+                    value: isRunning ? "OK" : "開始待ち",
+                    color: isRunning ? .green : .secondary
+                )
+                row(
+                    title: "Safari 拡張",
+                    value: safariExtensionLabel,
+                    color: safariExtensionColor
+                )
+                row(
+                    title: "音声取得",
+                    value: audioCaptureLabel,
+                    color: audioCaptureColor
+                )
+            }
+            .font(.caption)
+        }
+    }
+
+    private func row(title: String, value: String, color: Color) -> some View {
+        HStack {
+            Text("\(title):")
+            Spacer()
+            Text(value)
+                .fontWeight(.semibold)
+                .foregroundStyle(color)
+        }
+    }
+
+    private var safariExtensionLabel: String {
+        switch safariExtensionEnabled {
+        case .some(true):
+            return "OK"
+        case .some(false):
+            return "無効"
+        case .none:
+            return "未確認"
+        }
+    }
+
+    private var safariExtensionColor: Color {
+        switch safariExtensionEnabled {
+        case .some(true):
+            return .green
+        case .some(false):
+            return .orange
+        case .none:
+            return .secondary
+        }
+    }
+
+    private var audioCaptureLabel: String {
+        if isRunning && captureBufferCount > 0 {
+            return "OK"
+        }
+        return isRunning ? "待機中" : "開始後に確認"
+    }
+
+    private var audioCaptureColor: Color {
+        if isRunning && captureBufferCount > 0 {
+            return .green
+        }
+        return isRunning ? .orange : .secondary
+    }
+}
+
+private struct SafariExtensionDiagnosticsView: View {
+    @ObservedObject var controller: SafariExtensionController
+
+    var body: some View {
+        GroupBox("Safari 拡張") {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("状態:")
+                    Spacer()
+                    Text(controller.statusText)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(statusColor)
+                }
+                Text(controller.detailText)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let lastError = controller.lastError {
+                    Text(lastError)
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+                }
+                HStack {
+                    Button("状態を確認") {
+                        controller.refreshState()
+                    }
+                    .controlSize(.small)
+                    Button("拡張設定を開く") {
+                        controller.openPreferences()
+                    }
+                    .controlSize(.small)
+                }
+            }
+            .font(.caption)
+        }
+        .onAppear {
+            controller.refreshState()
+        }
+    }
+
+    private var statusColor: Color {
+        switch controller.isEnabled {
+        case .some(true):
+            return .green
+        case .some(false):
+            return .orange
+        case .none:
+            return .secondary
+        }
+    }
+}
+
 private struct DiagnosticLogRow: View {
     let entry: DiagnosticLogEntry
 
@@ -456,6 +594,8 @@ private struct DiagnosticLogRow: View {
     }
 }
 
+#if !DISABLE_SWIFTUI_PREVIEWS
 #Preview {
     ContentView(engine: PoCAudioEngine())
 }
+#endif

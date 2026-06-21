@@ -3,6 +3,13 @@
   "name": "Hazakura Amp YouTube Remote",
   "version": "0.1.0",
   "description": "Shows a compact YouTube remote for Hazakura Amp boost and one-video repeat.",
+  "icons": {
+    "48": "images/icon-48.png",
+    "96": "images/icon-96.png",
+    "128": "images/icon-128.png",
+    "256": "images/icon-256.png",
+    "512": "images/icon-512.png"
+  },
   "permissions": [
     "nativeMessaging",
     "storage"
@@ -28,6 +35,11 @@
     }
   ],
   "action": {
-    "default_title": "Hazakura Amp"
+    "default_title": "Hazakura Amp",
+    "default_icon": {
+      "48": "images/icon-48.png",
+      "96": "images/icon-96.png",
+      "128": "images/icon-128.png"
+    }
   }
 }

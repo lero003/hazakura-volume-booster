@@ -3,7 +3,7 @@ import SafariServices
 import os.log
 
 final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
-    private let log = Logger(subsystem: "dev.keisetsu.hazakura-amp", category: "SafariWebExtension")
+    private let log = Logger(subsystem: "dev.hazakura-amp", category: "SafariWebExtension")
 
     func beginRequest(with context: NSExtensionContext) {
         let response = handle(context: context)
@@ -46,7 +46,8 @@ final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
             "displayPercent": state?.displayPercent ?? 100,
             "isRunning": state?.isRunning ?? false,
             "statusText": state?.statusText ?? "app not running",
-            "lastError": state?.lastError ?? NSNull()
+            "lastError": state?.lastError ?? NSNull(),
+            "updatedAt": state?.updatedAt.timeIntervalSince1970 ?? NSNull()
         ]
     }
 }

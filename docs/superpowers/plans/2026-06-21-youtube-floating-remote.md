@@ -279,7 +279,7 @@ struct HazakuraAmpRemoteControlStore {
     }
 
     static func appGroupStore() throws -> HazakuraAmpRemoteControlStore {
-        guard let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.keisetsu.hazakura-amp") else {
+        guard let url = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.dev.hazakura-amp") else {
             throw CocoaError(.fileNoSuchFile)
         }
         return HazakuraAmpRemoteControlStore(baseDirectory: url.appendingPathComponent("RemoteControl", isDirectory: true))
@@ -451,7 +451,7 @@ final class HazakuraAmpRemoteControlBridge {
     private let engine: PoCAudioEngine
     private let store: HazakuraAmpRemoteControlStore
     private let interval: TimeInterval
-    private let log = Logger(subsystem: "dev.keisetsu.hazakura-amp", category: "RemoteControl")
+    private let log = Logger(subsystem: "dev.hazakura-amp", category: "RemoteControl")
     private var timer: Timer?
 
     init(engine: PoCAudioEngine, store: HazakuraAmpRemoteControlStore, interval: TimeInterval = 0.25) {
@@ -580,7 +580,7 @@ Create `background.js`:
 
 ```javascript
 const runtime = globalThis.browser || globalThis.chrome;
-const nativeApplication = "dev.keisetsu.hazakura-amp";
+const nativeApplication = "dev.hazakura-amp";
 
 runtime.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (!message || message.source !== "hazakura-amp-youtube") {
@@ -869,7 +869,7 @@ Add this key to `HazakuraAmp.entitlements`:
 ```xml
 <key>com.apple.security.application-groups</key>
 <array>
-    <string>group.dev.keisetsu.hazakura-amp</string>
+    <string>group.dev.hazakura-amp</string>
 </array>
 ```
 
@@ -883,7 +883,7 @@ import SafariServices
 import os.log
 
 final class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
-    private let log = Logger(subsystem: "dev.keisetsu.hazakura-amp", category: "SafariWebExtension")
+    private let log = Logger(subsystem: "dev.hazakura-amp", category: "SafariWebExtension")
 
     func beginRequest(with context: NSExtensionContext) {
         let response = handle(context: context)

@@ -1,5 +1,5 @@
 const runtimeApi = globalThis.browser ?? globalThis.chrome;
-const nativeAppName = "dev.keisetsu.hazakura-amp";
+const nativeAppName = "dev.hazakura-amp";
 
 function sendNativeMessage(message) {
   if (!runtimeApi?.runtime?.sendNativeMessage) {

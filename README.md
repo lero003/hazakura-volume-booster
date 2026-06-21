@@ -105,7 +105,7 @@ open "spike/core-audio-tap/build/Build/Products/Debug/Hazakura Amp.app"
 | **Hazakura Amp** | プロダクト名・UI表示・App Store表記・README・リリースノート |
 | **hazakura-amp** | GitHubリポジトリ名 |
 | **CoreAudioTapPoC** | v0.2 PoC のターゲット名・スキーム名・内部ソースフォルダ名。広いリネームを避けるため現時点では維持 |
-| **dev.keisetsu.hazakura-amp** | Bundle Identifier・権限表示・ログ識別子 |
+| **dev.hazakura-amp** | Bundle Identifier・権限表示・ログ識別子 |
 
 GitHub リポジトリ名、プロダクト名、Bundle Identifier、ログ/tap識別子は `Hazakura Amp` / `hazakura-amp` に合わせる。`CoreAudioTapPoC` は v0.2 PoC の内部ターゲット名・スキーム名・ソースフォルダ名としてだけ残す。
 

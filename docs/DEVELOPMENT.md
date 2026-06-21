@@ -120,7 +120,7 @@ xcodebuild \
   - Audio Engineは専用 actor か dispatch queue に隔離
   - 状態共有は `Sendable` を意識
 - **エラーハンドリング**: `throws` を活用。`fatalError` は原則禁止（起動時の前提違反時のみ限定的に許可）
-- **ロギング**: `os.Logger` / `OSLog` を使う。v0.2 PoC のサブシステムは `dev.keisetsu.hazakura-amp` を維持し、Bundle Identifier 変更時に再評価する
+- **ロギング**: `os.Logger` / `OSLog` を使う。v0.2 PoC のサブシステムは `dev.hazakura-amp` を維持し、Bundle Identifier 変更時に再評価する
 - **マジックナンバー禁止**: ゲイン範囲や刻みは `BoostRange` のような型に集約
 - **SwiftLint / swift-format**: 初期は導入せず、CIが安定してから `.swift-format` を設置
 

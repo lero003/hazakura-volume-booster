@@ -59,4 +59,4 @@ Verification recorded on 2026-06-18:
 
 - `xcodebuild -project CoreAudioTapPoC.xcodeproj -scheme CoreAudioTapPoC -destination 'platform=macOS' -derivedDataPath build test`
 - `xcodebuild -project CoreAudioTapPoC.xcodeproj -scheme CoreAudioTapPoC -configuration Debug -destination 'platform=macOS' -derivedDataPath build build`
-- `CFBundleName` and `CFBundleDisplayName` both resolve to `Hazakura Amp`; Bundle Identifier resolves to `dev.keisetsu.hazakura-amp`.
+- `CFBundleName` and `CFBundleDisplayName` both resolve to `Hazakura Amp`; Bundle Identifier resolves to `dev.hazakura-amp`.

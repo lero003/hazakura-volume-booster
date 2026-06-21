@@ -1,22 +1,31 @@
 .hazakura-amp-floating-bar {
   position: fixed;
-  right: 20px;
-  bottom: 92px;
+  top: 84px;
+  right: 18px;
   z-index: 2147483647;
-  width: min(320px, calc(100vw - 32px));
+  width: min(286px, calc(100vw - 24px));
   box-sizing: border-box;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
-  background: rgba(18, 19, 22, 0.92);
+  background: rgba(20, 22, 24, 0.9);
   color: #f7f7f2;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   font: 12px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(14px) saturate(1.08);
+  -webkit-backdrop-filter: blur(14px) saturate(1.08);
+  transition:
+    opacity 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+  user-select: none;
 }
 
 .hazakura-amp-header,
 .hazakura-amp-action-row,
+.hazakura-amp-preset-row,
 .hazakura-amp-boost-row {
   display: flex;
   align-items: center;
@@ -26,31 +35,35 @@
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
+  cursor: grab;
+  touch-action: none;
 }
 
 .hazakura-amp-title {
   font-weight: 700;
+  letter-spacing: 0;
 }
 
 .hazakura-amp-controls {
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
 .hazakura-amp-boost-row {
   display: grid;
-  grid-template-columns: auto minmax(120px, 1fr) 44px;
+  grid-template-columns: auto minmax(104px, 1fr) 43px;
   gap: 8px;
 }
 
 .hazakura-amp-boost-row input[type="range"] {
   width: 100%;
-  accent-color: #9ecbff;
+  accent-color: #8fb9e8;
 }
 
 .hazakura-amp-boost-value {
   text-align: right;
   font-variant-numeric: tabular-nums;
+  color: rgba(247, 247, 242, 0.86);
 }
 
 .hazakura-amp-action-row {
@@ -59,7 +72,8 @@
 }
 
 .hazakura-amp-icon-button,
-.hazakura-amp-repeat-button {
+.hazakura-amp-repeat-button,
+.hazakura-amp-preset-button {
   min-height: 28px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 6px;
@@ -67,6 +81,10 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease;
 }
 
 .hazakura-amp-icon-button {
@@ -78,9 +96,59 @@
   padding: 0 10px;
 }
 
+.hazakura-amp-preset-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+}
+
+.hazakura-amp-preset-button {
+  min-height: 24px;
+  padding: 0;
+  font-size: 11px;
+  color: rgba(247, 247, 242, 0.78);
+}
+
+.hazakura-amp-icon-button:hover,
+.hazakura-amp-repeat-button:hover,
+.hazakura-amp-preset-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.hazakura-amp-icon-button:active,
+.hazakura-amp-repeat-button:active,
+.hazakura-amp-preset-button:active {
+  transform: translateY(1px);
+}
+
+.hazakura-amp-preset-button.is-active {
+  border-color: rgba(143, 185, 232, 0.72);
+  background: rgba(143, 185, 232, 0.16);
+  color: #f7f7f2;
+}
+
 .hazakura-amp-repeat-button.is-on {
-  border-color: rgba(158, 203, 255, 0.8);
-  background: rgba(158, 203, 255, 0.2);
+  border-color: rgba(143, 185, 232, 0.78);
+  background: rgba(143, 185, 232, 0.18);
+}
+
+.hazakura-amp-safety {
+  min-height: 0;
+  color: rgba(255, 196, 112, 0.94);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-high-boost .hazakura-amp-boost-value {
+  color: rgba(255, 196, 112, 0.96);
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-disconnected {
+  border-color: rgba(255, 196, 112, 0.42);
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-disconnected .hazakura-amp-status {
+  color: rgba(255, 196, 112, 0.96);
 }
 
 .hazakura-amp-status {
@@ -97,5 +165,32 @@
 }
 
 .hazakura-amp-floating-bar.hazakura-amp-collapsed {
-  width: auto;
+  width: 156px;
+  padding: 7px 8px;
+  opacity: 0.9;
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-collapsed .hazakura-amp-header {
+  margin-bottom: 0;
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-dragging {
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  cursor: grabbing;
+  transform: scale(1.01);
+}
+
+.hazakura-amp-floating-bar.hazakura-amp-dragging .hazakura-amp-header {
+  cursor: grabbing;
+}
+
+@media (max-width: 640px) {
+  .hazakura-amp-floating-bar {
+    top: auto;
+    right: 12px;
+    bottom: 78px;
+    width: min(284px, calc(100vw - 24px));
+  }
 }

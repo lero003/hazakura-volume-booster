@@ -255,10 +255,10 @@ xcodebuild -project CoreAudioTapPoC.xcodeproj -scheme CoreAudioTapPoC -destinati
 
 ```bash
 # subsystem フィルタで永続ログ
-log show --predicate 'subsystem == "dev.keisetsu.hazakura-amp"' --last 5m --info
+log show --predicate 'subsystem == "dev.hazakura-amp"' --last 5m --info
 
 # ライブ監視（Start 押す前に走らせるとリアルタイムで流れる）
-log stream --predicate 'subsystem == "dev.keisetsu.hazakura-amp"' --level info
+log stream --predicate 'subsystem == "dev.hazakura-amp"' --level info
 ```
 
 ### 検証チェックリスト（`docs/TECH_SPIKE.md` の Done 条件）
